@@ -88,8 +88,8 @@ public class ThreadController : MonoBehaviour
         endJoint.angularZMotion = ConfigurableJointMotion.Locked;
 
         
-        if (startTransform.parent != null)
-            startTransform.gameObject.GetComponent<Rigidbody>().isKinematic = false;
+        // if (startTransform.parent != null)
+        //     startTransform.gameObject.GetComponent<Rigidbody>().isKinematic = false;
 
         SetupLineRenderer();
         SetupMeshComponents();

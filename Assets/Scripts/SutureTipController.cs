@@ -17,7 +17,7 @@ public class SutureTipController : MonoBehaviour
         // Set up tip collider
         SphereCollider col = GetComponent<SphereCollider>();
         col.isTrigger = true;
-        col.radius = 0.003f;
+        col.radius = 0.01f;
 
         // Set up physics
         Rigidbody rb = GetComponent<Rigidbody>();
@@ -76,8 +76,8 @@ public class SutureTipController : MonoBehaviour
             lr.SetPosition(1, secondHit.Value);
 
             // Trigger deformation on mesh
-            // SkinDeformer deformer = other.GetComponent<SkinDeformer>();
-            SuturingMeshDeformer deformer = other.GetComponent<SuturingMeshDeformer>();
+            SuturingMeshDeformerOptimized deformer = other.GetComponent<SuturingMeshDeformerOptimized>();
+            // SuturingMeshDeformer deformer = other.GetComponent<SuturingMeshDeformer>();
             if (deformer != null)
             {
                 deformer.ApplySuture(firstHit.Value, secondHit.Value);

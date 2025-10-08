@@ -34,7 +34,9 @@ public class ThreadController : MonoBehaviour
             GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             // GameObject capsule = new GameObject("segment");
 
-            capsule.transform.localScale = new Vector3(ropeRadius * 2f, segmentLength * 1.5f, ropeRadius * 2f);
+            capsule.tag = "Thread";
+
+            capsule.transform.localScale = new Vector3(ropeRadius * 2f, ropeRadius * 1.5f, ropeRadius * 2f);
 
             Vector3 pos = Vector3.Lerp(startTransform.position, endTransform.position, (i + 1f) / (segmentCount + 1f));
             capsule.transform.position = pos;

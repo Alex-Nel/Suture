@@ -14,6 +14,8 @@ public class ThreadContinuer : MonoBehaviour
 
     // Line Renderer
     public LineRenderer threadRenderer;
+
+    public Material threadMaterial;
     // Points for the line renderer
     public List<Vector3> points;
 
@@ -21,7 +23,7 @@ public class ThreadContinuer : MonoBehaviour
     private bool startingSuturePair = false;
 
     // Holds a potential point to add
-    public Vector3 potentialPoint;
+    private Vector3 potentialPoint;
 
     public List<GameObject> threads;
 
@@ -40,8 +42,8 @@ public class ThreadContinuer : MonoBehaviour
 
         // Set up settings on the line renderer
         threadRenderer = GetComponent<LineRenderer>();
-        threadRenderer.startWidth = 0.002f;
-        threadRenderer.endWidth = 0.002f;
+        threadRenderer.startWidth = 0.001f;
+        threadRenderer.endWidth = 0.001f;
         Debug.Log("Set line renderer settings");
 
         // Make the first two points of the line renderer
@@ -63,66 +65,36 @@ public class ThreadContinuer : MonoBehaviour
         }
 
 
-
-        // if (needleThreadPoint.GetComponent<messanger>().EnteredMesh == true)
-        // {
-        //     if (startingSuturePair == false)
-        //     {
-        //         startingSuturePair = true;
-        //         potentialPoint = needleThreadPoint.transform.position;
-        //     }
-        //     else
-        //     {
-        //         potentialPoint = needleThreadPoint.transform.position;
-        //     }
-
-        //     needleThreadPoint.GetComponent<messanger>().EnteredMesh = false;
-        // }
-        // else if (needleThreadPoint.GetComponent<messanger>().ExitedMesh == true)
-        // {
-        //     if (startingSuturePair == true)
-        //     {
-        //         points.Insert(points.Count - 1, potentialPoint);
-        //         threadRenderer.positionCount++;
-        //         potentialPoint = Vector3.zero;
-
-        //         // Do something about making suture pairs in the future.
-        //         startingSuturePair = false;
-        //     }
-        //     else
-        //     {
-        //         points.Insert(points.Count - 1, potentialPoint);
-        //         threadRenderer.positionCount++;
-        //         potentialPoint = Vector3.zero;
-        //     }
-        //     needleThreadPoint.GetComponent<messanger>().ExitedMesh = false;
-        // }
-
-
+        // Happens when the needle thread point enters the mesh
         if (needleThreadPoint.GetComponent<messanger>().EnteredMesh == true)
         {
+            // If a suture pair hasn't been started, start one
             if (startingSuturePair == false)
             {
                 startingSuturePair = true;
             }
 
+            // Mark the point of entry as a potential point
             potentialPoint = needleThreadPoint.transform.position;
 
             needleThreadPoint.GetComponent<messanger>().EnteredMesh = false;
         }
         else if (needleThreadPoint.GetComponent<messanger>().ExitedMesh == true)
         {
+            // If the needle point exits and a suture pair has been started, do something
             if (startingSuturePair == true)
             {
                 // Do something about making suture pairs in the future.
                 startingSuturePair = false;
             }
 
+            // Put the potential point in the points list, and to the line renderer. Reset the potential point to zero.
             points.Insert(points.Count - 1, potentialPoint);
             threadRenderer.positionCount++;
             potentialPoint = Vector3.zero;
 
-            AddThread(points[points.Count - 2], points[points.Count - 1]);
+            // Make a thread between the new point and the previous one
+            AddThread(points[points.Count - 3], points[points.Count - 2]);
             Debug.Log("Adding thread");
 
             needleThreadPoint.GetComponent<messanger>().ExitedMesh = false;
@@ -141,22 +113,39 @@ public class ThreadContinuer : MonoBehaviour
         thrd.AddComponent<ThreadController>();
 
         thrd.GetComponent<ThreadController>().ropeRadius = threadRenderer.startWidth;
+        thrd.GetComponent<ThreadController>().ropeMaterial = threadMaterial;
 
+
+        // Make two new objects for the start and end point of the thread.
         GameObject strt = new();
         strt.transform.position = point1;
+        strt.AddComponent<Rigidbody>();
 
         GameObject end = new();
-        strt.transform.position = point2;
+        end.transform.position = point2;
+        end.AddComponent<Rigidbody>();
 
-        thrd.GetComponent<ThreadController>().startTransform = strt.transform;
+        // In the very unique case that point 1 is the threadSrc, use that instead, otherwise use the new object
+        if (point1 == points[0])
+        {
+            thrd.GetComponent<ThreadController>().startTransform = threadSource.transform;
+            Destroy(strt);
+        }
+        else
+        {
+            thrd.GetComponent<ThreadController>().startTransform = strt.transform;
+        }
         thrd.GetComponent<ThreadController>().endTransform = end.transform;
 
-        thrd.GetComponent<ThreadController>().segmentCount = (int)(Vector3.Distance(point1, point2) / thrd.GetComponent<ThreadController>().segmentLength);
+        // Set the segment count based on distance (kind of broken right now)
+        // thrd.GetComponent<ThreadController>().segmentCount = (int)(Vector3.Distance(point1, point2) / 0.02f);
+        thrd.GetComponent<ThreadController>().segmentCount = 1;
+        thrd.GetComponent<ThreadController>().segmentLength = Vector3.Distance(point1, point2) / 1;
 
-        // Add rigid bodies and make them kinematic so that they don't move ////////////////////////
-        
-        // strt.GetComponent<Rigidbody>().isKinematic = true;
-        // end.GetComponent<Rigidbody>().isKinematic = true;
+
+        // Make rigid bodies and make them kinematic so that they don't move
+        strt.GetComponent<Rigidbody>().isKinematic = true;
+        end.GetComponent<Rigidbody>().isKinematic = true;
 
         threads.Add(thrd);
     }

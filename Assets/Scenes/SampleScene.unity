@@ -1469,11 +1469,11 @@ MonoBehaviour:
   needle: {fileID: 754776076}
   needlePoint: {fileID: 1045630277}
   needleThreadPoint: {fileID: 1562244565}
-  thread: {fileID: 0}
   threadSource: {fileID: 2034205473}
   threadRenderer: {fileID: 764756543}
+  threadMaterial: {fileID: 2100000, guid: 107a73775f106564bb78e9ac47242aa7, type: 2}
   points: []
-  potentialPoint: {x: 0, y: 0, z: 0}
+  threads: []
 --- !u!4 &764756542
 Transform:
   m_ObjectHideFlags: 0

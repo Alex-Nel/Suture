@@ -44,6 +44,7 @@ public class ThreadContinuer : MonoBehaviour
         threadRenderer = GetComponent<LineRenderer>();
         threadRenderer.startWidth = 0.001f;
         threadRenderer.endWidth = 0.001f;
+        threadRenderer.material = threadMaterial;
         Debug.Log("Set line renderer settings");
 
         // Make the first two points of the line renderer
@@ -59,10 +60,12 @@ public class ThreadContinuer : MonoBehaviour
     void Update()
     {
         // Set each position of the line renderer to the poinst list.
-        for (int i = 0; i < points.Count; i++)
-        {
-            threadRenderer.SetPosition(i, points[i]);
-        }
+        // for (int i = 0; i < points.Count; i++)
+        // {
+        //     threadRenderer.SetPosition(i, points[i]);
+        // }
+        threadRenderer.SetPosition(0, points[points.Count - 2]);
+        threadRenderer.SetPosition(1, points[points.Count - 1]);
 
 
         // Happens when the needle thread point enters the mesh
@@ -90,7 +93,7 @@ public class ThreadContinuer : MonoBehaviour
 
             // Put the potential point in the points list, and to the line renderer. Reset the potential point to zero.
             points.Insert(points.Count - 1, potentialPoint);
-            threadRenderer.positionCount++;
+            // threadRenderer.positionCount++;
             potentialPoint = Vector3.zero;
 
             // Make a thread between the new point and the previous one
@@ -139,8 +142,8 @@ public class ThreadContinuer : MonoBehaviour
 
         // Set the segment count based on distance (kind of broken right now)
         // thrd.GetComponent<ThreadController>().segmentCount = (int)(Vector3.Distance(point1, point2) / 0.02f);
-        thrd.GetComponent<ThreadController>().segmentCount = 1;
-        thrd.GetComponent<ThreadController>().segmentLength = Vector3.Distance(point1, point2) / 1;
+        thrd.GetComponent<ThreadController>().segmentCount = 2;
+        thrd.GetComponent<ThreadController>().segmentLength = Vector3.Distance(point1, point2) / 3f;
 
 
         // Make rigid bodies and make them kinematic so that they don't move

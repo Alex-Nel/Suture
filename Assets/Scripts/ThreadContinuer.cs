@@ -17,28 +17,36 @@ public class ThreadContinuer : MonoBehaviour
 
     public Material threadMaterial;
     // Points for the line renderer
-    public List<Vector3> points;
+    // public List<Vector3> points;
+    public List<GameObject> points;
+
 
     // Bool to know when a pair is starting // Future use
-    private bool startingSuturePair = false;
+    // private bool startingSuturePair = false;
+    private int totalPoints = 0;
 
     // Holds a potential point to add
     private Vector3 potentialPoint;
 
+    private (GameObject, GameObject, Vector3) pair;
+    public List<(GameObject, GameObject, Vector3)> suturePairs;
+    private GameObject pairObj1;
+
     public List<GameObject> threads;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public GameObject mesh;
+
+
     void Start()
     {
-        // if (needlePoint == null || thread == null)
-        //     Debug.Log("One of the objects is empty");
-
-
         // Make a new points list
         points = new();
 
         // Make a new threads list
         threads = new();
+
+        // Make a new suturePairs list
+        suturePairs = new();
 
         // Set up settings on the line renderer
         threadRenderer = GetComponent<LineRenderer>();
@@ -50,9 +58,11 @@ public class ThreadContinuer : MonoBehaviour
         // Make the first two points of the line renderer
         threadRenderer.positionCount = 2;
         threadRenderer.SetPosition(0, threadSource.transform.position);
-        points.Add(threadSource.transform.position);
+        // points.Add(threadSource.transform.position);
+        points.Add(threadSource);
         threadRenderer.SetPosition(1, needleThreadPoint.transform.position);
-        points.Add(needleThreadPoint.transform.position);
+        // points.Add(needleThreadPoint.transform.position);
+        points.Add(needleThreadPoint);
         Debug.Log("Line renderer has: " + threadRenderer.positionCount + " points");
     }
 
@@ -60,23 +70,19 @@ public class ThreadContinuer : MonoBehaviour
     void Update()
     {
         // Set each position of the line renderer to the poinst list.
-        // for (int i = 0; i < points.Count; i++)
-        // {
-        //     threadRenderer.SetPosition(i, points[i]);
-        // }
-        threadRenderer.SetPosition(0, points[points.Count - 2]);
-        threadRenderer.SetPosition(1, points[points.Count - 1]);
+        for (int i = 0; i < points.Count; i++)
+        {
+            threadRenderer.SetPosition(i, points[i].transform.position);
+        }
+
+        // Only make a line renderer on the last two points
+        // threadRenderer.SetPosition(0, points[points.Count - 2]);
+        // threadRenderer.SetPosition(1, points[points.Count - 1]);
 
 
         // Happens when the needle thread point enters the mesh
         if (needleThreadPoint.GetComponent<messanger>().EnteredMesh == true)
         {
-            // If a suture pair hasn't been started, start one
-            if (startingSuturePair == false)
-            {
-                startingSuturePair = true;
-            }
-
             // Mark the point of entry as a potential point
             potentialPoint = needleThreadPoint.transform.position;
 
@@ -84,30 +90,56 @@ public class ThreadContinuer : MonoBehaviour
         }
         else if (needleThreadPoint.GetComponent<messanger>().ExitedMesh == true)
         {
-            // If the needle point exits and a suture pair has been started, do something
-            if (startingSuturePair == true)
-            {
-                // Do something about making suture pairs in the future.
-                startingSuturePair = false;
-            }
+            totalPoints++;
 
             // Put the potential point in the points list, and to the line renderer. Reset the potential point to zero.
-            points.Insert(points.Count - 1, potentialPoint);
+            // points.Insert(points.Count - 1, potentialPoint);
+            GameObject obj = new();
+            obj.transform.position = potentialPoint;
+            if (totalPoints == 1)
+            {
+                pairObj1 = obj;
+            }
+            else if (totalPoints == 4)
+            {
+                var midpoint = (pairObj1.transform.position + obj.transform.position) / 2f;
+                pair = (pairObj1, obj, midpoint);
+                suturePairs.Add(pair);
+                Debug.Log("Point1: " + pairObj1.transform.position);
+                Debug.Log("Point2: " + obj.transform.position);
+                Debug.Log("Midpoint: " + midpoint);
+
+                totalPoints = 0;
+            }
+            points.Insert(points.Count - 1, obj);
+            threadRenderer.positionCount++;
+
             // threadRenderer.positionCount++;
             potentialPoint = Vector3.zero;
 
             // Make a thread between the new point and the previous one
-            AddThread(points[points.Count - 3], points[points.Count - 2]);
+            // AddThread(points[points.Count - 3], points[points.Count - 2]);
             Debug.Log("Adding thread");
 
             needleThreadPoint.GetComponent<messanger>().ExitedMesh = false;
         }
 
+        if (suturePairs.Count > 0)
+        {
+            if (Vector3.Distance(needle.transform.position, suturePairs[suturePairs.Count-1].Item3) > 0.08f &&
+                Vector3.Distance(threadSource.transform.position, suturePairs[suturePairs.Count-1].Item3) > 0.08f)
+            {
+                mesh.GetComponent<SuturingMeshDeformer>().ApplySuture(suturePairs[suturePairs.Count-1].Item1, suturePairs[suturePairs.Count-1].Item2);
+            }
+        }
+
 
         // Alays make the last point the position of the needleThreadPoint
-        points[points.Count - 1] = needleThreadPoint.transform.position;
+        // points[points.Count - 1] = needleThreadPoint.transform.position;
+        points[points.Count - 1] = needleThreadPoint;
         // Always make the first point the position of the thread source
-        points[0] = threadSource.transform.position;
+        // points[0] = threadSource.transform.position;
+        points[0] = threadSource;
     }
 
     void AddThread(Vector3 point1, Vector3 point2)
@@ -129,7 +161,7 @@ public class ThreadContinuer : MonoBehaviour
         end.AddComponent<Rigidbody>();
 
         // In the very unique case that point 1 is the threadSrc, use that instead, otherwise use the new object
-        if (point1 == points[0])
+        if (point1 == points[0].transform.position)
         {
             thrd.GetComponent<ThreadController>().startTransform = threadSource.transform;
             Destroy(strt);

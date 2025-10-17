@@ -14,7 +14,6 @@ public class ThreadContinuer : MonoBehaviour
 
     // Line Renderer
     public LineRenderer threadRenderer;
-
     public Material threadMaterial;
     // Points for the line renderer
     // public List<Vector3> points;
@@ -35,6 +34,9 @@ public class ThreadContinuer : MonoBehaviour
     public List<GameObject> threads;
 
     public GameObject mesh;
+    public float DistanceToApplySuture;
+
+    public GameObject CutPoint;
 
 
     void Start()
@@ -95,6 +97,7 @@ public class ThreadContinuer : MonoBehaviour
             // Put the potential point in the points list, and to the line renderer. Reset the potential point to zero.
             // points.Insert(points.Count - 1, potentialPoint);
             GameObject obj = new();
+            obj.name = "Suture Point";
             obj.transform.position = potentialPoint;
             if (totalPoints == 1)
             {
@@ -103,6 +106,15 @@ public class ThreadContinuer : MonoBehaviour
             else if (totalPoints == 4)
             {
                 var midpoint = (pairObj1.transform.position + obj.transform.position) / 2f;
+
+                CutPoint = new();
+                CutPoint.transform.position = midpoint;
+                CutPoint.name = "CutPoint";
+                CutPoint.AddComponent<SphereCollider>();
+                CutPoint.GetComponent<SphereCollider>().isTrigger = true;
+                CutPoint.GetComponent<SphereCollider>().radius = 0.01f;
+                CutPoint.AddComponent<messanger>();
+
                 pair = (pairObj1, obj, midpoint);
                 suturePairs.Add(pair);
                 Debug.Log("Point1: " + pairObj1.transform.position);
@@ -114,22 +126,30 @@ public class ThreadContinuer : MonoBehaviour
             points.Insert(points.Count - 1, obj);
             threadRenderer.positionCount++;
 
-            // threadRenderer.positionCount++;
             potentialPoint = Vector3.zero;
-
-            // Make a thread between the new point and the previous one
-            // AddThread(points[points.Count - 3], points[points.Count - 2]);
-            Debug.Log("Adding thread");
 
             needleThreadPoint.GetComponent<messanger>().ExitedMesh = false;
         }
 
-        if (suturePairs.Count > 0)
+        // If the two items are pulled up a certain distance, apply the suture point for deformation
+        if (suturePairs.Count > 0 && pair.Item1 != null)
         {
-            if (Vector3.Distance(needle.transform.position, suturePairs[suturePairs.Count-1].Item3) > 0.08f &&
-                Vector3.Distance(threadSource.transform.position, suturePairs[suturePairs.Count-1].Item3) > 0.08f)
+            if (Vector3.Distance(needle.transform.position, pair.Item3) > DistanceToApplySuture &&
+                Vector3.Distance(threadSource.transform.position, pair.Item3) > DistanceToApplySuture)
             {
-                mesh.GetComponent<SuturingMeshDeformer>().ApplySuture(suturePairs[suturePairs.Count-1].Item1, suturePairs[suturePairs.Count-1].Item2);
+                mesh.GetComponent<SuturingMeshDeformer>().ApplySuture(pair.Item1, pair.Item2);
+                pair = (null, null, Vector3.zero);
+            }
+        }
+
+
+        if (CutPoint != null)
+        {
+            if (CutPoint.GetComponent<messanger>().EnteredMesh == true)
+            {
+                Debug.Log("MidPoint entered, cut string");
+                FinalizeSuture();
+                CutPoint.GetComponent<messanger>().EnteredMesh = false;
             }
         }
 
@@ -141,6 +161,31 @@ public class ThreadContinuer : MonoBehaviour
         // points[0] = threadSource.transform.position;
         points[0] = threadSource;
     }
+
+    void FinalizeSuture()
+    {
+        Destroy(CutPoint);
+
+        // Reset main thread renderer
+        points.Clear();
+        threadRenderer.positionCount = 2;
+        threadRenderer.SetPosition(0, threadSource.transform.position);
+        points.Add(threadSource);
+        threadRenderer.SetPosition(1, needleThreadPoint.transform.position);
+        points.Add(needleThreadPoint);
+
+        // Add a line for the new pair
+        GameObject obj = new();
+        obj.AddComponent<LineRenderer>();
+        obj.GetComponent<LineRenderer>().startWidth = 0.001f;
+        obj.GetComponent<LineRenderer>().endWidth = 0.001f;
+        obj.GetComponent<LineRenderer>().material = threadMaterial;
+
+        obj.GetComponent<LineRenderer>().positionCount = 2;
+        obj.GetComponent<LineRenderer>().SetPosition(0, suturePairs[suturePairs.Count - 1].Item1.transform.position);
+        obj.GetComponent<LineRenderer>().SetPosition(1, suturePairs[suturePairs.Count - 1].Item2.transform.position);
+    }
+    
 
     void AddThread(Vector3 point1, Vector3 point2)
     {

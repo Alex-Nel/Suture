@@ -263,7 +263,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &16134035
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -740,7 +740,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &291309062
 Transform:
   m_ObjectHideFlags: 0
@@ -1385,6 +1385,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: needle with string (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a2823fb3fb65b91448d29dc403a38453, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -1477,6 +1481,9 @@ MonoBehaviour:
   mesh: {fileID: 1644664945}
   DistanceToApplySuture: 0.08
   CutPoint: {fileID: 0}
+  TiePoint1: {fileID: 0}
+  TiePoint2: {fileID: 0}
+  Tied: 0
 --- !u!4 &764756542
 Transform:
   m_ObjectHideFlags: 0
@@ -3671,13 +3678,13 @@ SceneRoots:
   - {fileID: 14323899}
   - {fileID: 2036889623}
   - {fileID: 1781553384}
-  - {fileID: 1156931511}
-  - {fileID: 1644664944}
-  - {fileID: 453988773}
-  - {fileID: 2034205477}
   - {fileID: 1369467443}
   - {fileID: 754776075}
   - {fileID: 291309062}
   - {fileID: 16134039}
+  - {fileID: 1156931511}
+  - {fileID: 1644664944}
+  - {fileID: 453988773}
+  - {fileID: 2034205477}
   - {fileID: 764756542}
   - {fileID: 1985660953}

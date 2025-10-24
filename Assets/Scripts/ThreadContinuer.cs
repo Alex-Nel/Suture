@@ -162,7 +162,10 @@ public class ThreadContinuer : MonoBehaviour
             needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
         }
 
+        // 
+        // Skin Deformation:
         // If the two items are pulled up a certain distance, apply the suture point for deformation
+        //
         if (suturePairs.Count > 0 && pair.Item1 != null)
         {
             // Calculate the distance of the tools from the Cutpoint
@@ -179,13 +182,16 @@ public class ThreadContinuer : MonoBehaviour
             DistanceFromMidPoint -= DistanceToApplySuture;
             if (DistanceFromMidPoint < 0)
                 DistanceFromMidPoint = 0;
-            
+
             // Set the mesh deformation pull strength to the distance from cutpoint.
             mesh.GetComponent<SuturingMeshDeformer>().pullStrength = DistanceFromMidPoint;
         }
 
 
+        //
+        // Cutting and finalizing suture:
         // If there is a cut point, listen for a cut instruction
+        //
         if (CutPoint != null)
         {
             // If scissors enter the mesh, cut the string and finalize the suture pair
@@ -202,8 +208,10 @@ public class ThreadContinuer : MonoBehaviour
         }
 
 
+        //
         // If there are more than 3 points, make the tie points if they haven't been made
         // Set them as the midpoints of the first 2, and last 2 points
+        //
         if (points.Count >= 3)
         {
             if (TiePoint1 == null)
@@ -241,6 +249,8 @@ public class ThreadContinuer : MonoBehaviour
                 Debug.Log("Tie point 2 Created");
             }
 
+            // Dependong on whether the string is tied, make the tie points have a different position
+            // If they are tied, make them the midpoint between the two "ends", and the cutpoint
             if (Tied == false)
             {
                 TiePoint1.transform.position = (points[0].transform.position + points[2].transform.position) / 2.0f;
@@ -296,18 +306,20 @@ public class ThreadContinuer : MonoBehaviour
 
     void FinalizeSuture()
     {
-        Destroy(CutPoint);
-        CutPoint = null;
-
         // Reset main thread renderer
         points.Clear();
         Tied = false;
+
+        // Destory and reset all the tie points and cut point
+        Destroy(CutPoint);
+        CutPoint = null;
 
         Destroy(TiePoint1);
         TiePoint1 = null;
         Destroy(TiePoint2);
         TiePoint2 = null;
 
+        // Reset hte line renderer
         threadRenderer.positionCount = 2;
         threadRenderer.SetPosition(0, threadSource.transform.position);
         points.Add(threadSource);

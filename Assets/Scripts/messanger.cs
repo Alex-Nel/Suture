@@ -1,9 +1,12 @@
+using System;
 using UnityEngine;
 
-public class messanger : MonoBehaviour
+public class messenger : MonoBehaviour
 {
 
     public Collider col;
+
+    public String TargetTag;
 
     public bool EnteredMesh;
 
@@ -14,6 +17,8 @@ public class messanger : MonoBehaviour
     void Start()
     {
         col = GetComponent<Collider>();
+        if (TargetTag == null)
+            Debug.Log("No Tag set");
         EnteredMesh = false;
         ExitedMesh = false;
     }
@@ -26,13 +31,17 @@ public class messanger : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        EnteredMesh = true;
+        if (other.tag == TargetTag)
+            EnteredMesh = true;
+        Debug.Log(other.tag);
         // ExitedMesh = false;
     }
 
     void OnTriggerExit(Collider other)
     {
-        ExitedMesh = true;
+        if (other.tag == TargetTag)
+            ExitedMesh = true;
+        Debug.Log(other.tag);
         // EnteredMesh = false;
     }
 }

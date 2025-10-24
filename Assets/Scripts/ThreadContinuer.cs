@@ -37,12 +37,17 @@ public class ThreadContinuer : MonoBehaviour
     // Objects related to the mesh deformation
     public GameObject mesh;
     public float DistanceToApplySuture;
+    public float MaxPullStrength;
     public GameObject CutPoint;
 
     // Objects related to tying
     public GameObject TiePoint1;
     public GameObject TiePoint2;
     public bool Tied = false;
+    public float wA, wB, wC;
+    public float wCbias;
+    public float DistanceBetweenMainPoints;
+    public float DistanceFromMidPoint;
 
 
     void Start()
@@ -60,6 +65,13 @@ public class ThreadContinuer : MonoBehaviour
         TiePoint1 = null;
         TiePoint2 = null;
         Tied = false;
+
+        //Reset other variables
+        wA = 1.0f;
+        wB = 1.0f;
+        wC = 1.0f;
+        DistanceBetweenMainPoints = -1f;
+        DistanceFromMidPoint = 0f;
 
         // Set up settings on the line renderer
         threadRenderer = GetComponent<LineRenderer>();
@@ -88,14 +100,18 @@ public class ThreadContinuer : MonoBehaviour
             threadRenderer.SetPosition(i, points[i].transform.position);
         }
 
-        // Happens when the needle thread point enters the mesh
-        if (needleThreadPoint.GetComponent<messanger>().EnteredMesh == true)
+        // Get the distance between the 2 main points (needle thread point, and the thread source poitn)
+        DistanceBetweenMainPoints = Vector3.Distance(needleThreadPoint.transform.position, threadSource.transform.position);
+
+        // When needleThreadPoint touches the skin, save the point as a potential point
+        // If it exits, make the potential point a position for a suture
+        if (needleThreadPoint.GetComponent<messenger>().EnteredMesh == true)
         {
             // Mark the point of entry as a potential point
             potentialPoint = needleThreadPoint.transform.position;
-            needleThreadPoint.GetComponent<messanger>().EnteredMesh = false;
+            needleThreadPoint.GetComponent<messenger>().EnteredMesh = false;
         }
-        else if (needleThreadPoint.GetComponent<messanger>().ExitedMesh == true)
+        else if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true)
         {
             totalPoints++;
 
@@ -120,7 +136,8 @@ public class ThreadContinuer : MonoBehaviour
                 CutPoint.AddComponent<SphereCollider>();
                 CutPoint.GetComponent<SphereCollider>().isTrigger = true;
                 CutPoint.GetComponent<SphereCollider>().radius = 0.01f;
-                CutPoint.AddComponent<messanger>();
+                CutPoint.AddComponent<messenger>();
+                CutPoint.GetComponent<messenger>().TargetTag = "Scissors";
 
                 pair = (pairObj1, obj, midpoint);
                 suturePairs.Add(pair);
@@ -142,18 +159,29 @@ public class ThreadContinuer : MonoBehaviour
 
             potentialPoint = Vector3.zero;
 
-            needleThreadPoint.GetComponent<messanger>().ExitedMesh = false;
+            needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
         }
 
         // If the two items are pulled up a certain distance, apply the suture point for deformation
         if (suturePairs.Count > 0 && pair.Item1 != null)
         {
-            if (Vector3.Distance(needle.transform.position, pair.Item3) > DistanceToApplySuture &&
-                Vector3.Distance(threadSource.transform.position, pair.Item3) > DistanceToApplySuture)
+            // Calculate the distance of the tools from the Cutpoint
+            Vector3 temp = (needleThreadPoint.transform.position + threadSource.transform.position) / 2.0f;
+            DistanceFromMidPoint = Vector3.Distance(temp, CutPoint.transform.position);
+
+            // If that distance if more than the minimum, apply the pair
+            if (DistanceFromMidPoint > DistanceToApplySuture)
             {
                 mesh.GetComponent<SuturingMeshDeformer>().ApplySuture(pair.Item1, pair.Item2);
-                pair = (null, null, Vector3.zero);
             }
+
+            // Adjust the distance from cutpoint relative to the minimum distance
+            DistanceFromMidPoint -= DistanceToApplySuture;
+            if (DistanceFromMidPoint < 0)
+                DistanceFromMidPoint = 0;
+            
+            // Set the mesh deformation pull strength to the distance from cutpoint.
+            mesh.GetComponent<SuturingMeshDeformer>().pullStrength = DistanceFromMidPoint;
         }
 
 
@@ -161,11 +189,15 @@ public class ThreadContinuer : MonoBehaviour
         if (CutPoint != null)
         {
             // If scissors enter the mesh, cut the string and finalize the suture pair
-            if (CutPoint.GetComponent<messanger>().EnteredMesh == true)
+            if (CutPoint.GetComponent<messenger>().EnteredMesh == true)
             {
-                Debug.Log("MidPoint entered, cut string");
-                FinalizeSuture();
-                CutPoint.GetComponent<messanger>().EnteredMesh = false;
+                CutPoint.GetComponent<messenger>().EnteredMesh = false;
+                if (Tied == true)
+                {
+                    Debug.Log("MidPoint entered, cut string");
+                    FinalizeSuture();
+                    pair = (null, null, Vector3.zero);
+                }
             }
         }
 
@@ -178,6 +210,16 @@ public class ThreadContinuer : MonoBehaviour
             {
                 TiePoint1 = new();
                 TiePoint1.name = "TiePoint1";
+                TiePoint1.tag = "TiePoint";
+                TiePoint1.AddComponent<CapsuleCollider>();
+                TiePoint1.GetComponent<CapsuleCollider>().isTrigger = true;
+                TiePoint1.GetComponent<CapsuleCollider>().radius = 0.002f;
+                TiePoint1.GetComponent<CapsuleCollider>().height = 0.02f;
+                TiePoint1.AddComponent<messenger>();
+                TiePoint1.GetComponent<messenger>().TargetTag = "TiePoint";
+                TiePoint1.AddComponent<Rigidbody>();
+                TiePoint1.GetComponent<Rigidbody>().isKinematic = true;
+
                 points.Insert(1, TiePoint1);
                 threadRenderer.positionCount++;
                 Debug.Log("Tie point 1 Created");
@@ -186,6 +228,14 @@ public class ThreadContinuer : MonoBehaviour
             {
                 TiePoint2 = new();
                 TiePoint2.name = "TiePoint2";
+                TiePoint2.tag = "TiePoint";
+                TiePoint2.AddComponent<CapsuleCollider>();
+                TiePoint2.GetComponent<CapsuleCollider>().isTrigger = true;
+                TiePoint2.GetComponent<CapsuleCollider>().radius = 0.002f;
+                TiePoint2.GetComponent<CapsuleCollider>().height = 0.02f;
+                TiePoint2.AddComponent<messenger>();
+                TiePoint2.GetComponent<messenger>().TargetTag = "TiePoint";
+
                 points.Insert(points.Count - 1, TiePoint2);
                 threadRenderer.positionCount++;
                 Debug.Log("Tie point 2 Created");
@@ -194,7 +244,39 @@ public class ThreadContinuer : MonoBehaviour
             if (Tied == false)
             {
                 TiePoint1.transform.position = (points[0].transform.position + points[2].transform.position) / 2.0f;
+                TiePoint1.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[0].transform.position - points[2].transform.position);
                 TiePoint2.transform.position = (points[points.Count - 1].transform.position + points[points.Count - 3].transform.position) / 2.0f;
+                TiePoint2.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[points.Count - 1].transform.position - points[points.Count - 3].transform.position);
+            }
+            else if (Tied == true)
+            {
+                // wA = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
+                // wB = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
+                wC = ((DistanceBetweenMainPoints + 0.00001f) * 10.0f) + wCbias;
+                if (wC < 0.5f)
+                    wC = 0.5f;
+
+                Vector3 MidPoint = (
+                    threadSource.transform.position * wA +
+                    needleThreadPoint.transform.position * wB +
+                    CutPoint.transform.position * wC
+                ) / (wA + wB + wC);
+
+                TiePoint1.transform.position = MidPoint;
+                TiePoint2.transform.position = MidPoint;
+            }
+        }
+
+
+
+        // Checking if the user is trying to tie the string
+        if (TiePoint1 != null)
+        {
+            // Debug.Log("Checking for a tie");
+            if (TiePoint1.GetComponent<messenger>().EnteredMesh == true && pair.Item2 != null)
+            {
+                // Debug.Log("Tied Points touched, tie started");
+                Tied = true;
             }
         }
 
@@ -215,9 +297,11 @@ public class ThreadContinuer : MonoBehaviour
     void FinalizeSuture()
     {
         Destroy(CutPoint);
+        CutPoint = null;
 
         // Reset main thread renderer
         points.Clear();
+        Tied = false;
 
         Destroy(TiePoint1);
         TiePoint1 = null;

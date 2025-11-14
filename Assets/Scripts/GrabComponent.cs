@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GrabComponent : MonoBehaviour
@@ -14,9 +15,11 @@ public class GrabComponent : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        touchingObjects = touchingObjects.Distinct<GameObject>().ToList<GameObject>();
+
         if (touchingObjects.Count >= 2)
         {
-            transform.SetParent(touchingObjects[0].transform);
+            transform.SetParent(touchingObjects[0].transform, true);
         }
         else
         {
@@ -26,15 +29,27 @@ public class GrabComponent : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Collided with: " + other.gameObject);
-        touchingObjects.Add(other.gameObject);
+        if (other.gameObject.tag == "Tool")
+        {
+            Debug.Log("Collided with: " + other.gameObject);
+            touchingObjects.Add(other.gameObject);
+        }
+
+        // Debug.Log("Collided with: " + other.gameObject);
+        // touchingObjects.Add(other.gameObject);
     }
 
     void OnTriggerExit(Collider other)
     {
-        Debug.Log("Object exited: " + other.gameObject);
-        touchingObjects.Remove(other.gameObject);
-        // touchingObjects.RemoveAll(other.gameObject);
+        if (other.gameObject.tag == "Tool")
+        {
+            Debug.Log("Object exited: " + other.gameObject);
+            touchingObjects.Remove(other.gameObject);
+            // touchingObjects.RemoveAll(other.gameObject);
+        }
+
+        // Debug.Log("Object exited: " + other.gameObject);
+        // touchingObjects.Remove(other.gameObject);
     }
 
 

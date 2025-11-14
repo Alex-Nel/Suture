@@ -9,6 +9,8 @@ TagManager:
   - RopeEnd
   - Scissors
   - TiePoint
+  - Tool
+  - OtherGrabber
   layers:
   - Default
   - TransparentFX

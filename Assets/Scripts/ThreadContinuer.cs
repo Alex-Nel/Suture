@@ -302,31 +302,29 @@ public class ThreadContinuer : MonoBehaviour
         //
         // Logic for needle locking and rotation when suturing is in progress
         //
-        if (needleLocked == false)
+        
+        if (needlePoint.GetComponent<messenger>().EnteredMesh == true)
         {
-            if (needlePoint.GetComponent<messenger>().EnteredMesh == true)
+            needlePoint.GetComponent<messenger>().EnteredMesh = false;
+            lockedPos = needle.transform.position;
+        }
+        if (needlePoint.GetComponent<messenger>().ExitedMesh == true)
+        {
+            needlePoint.GetComponent<messenger>().ExitedMesh = false;
+            if (needlePointInMesh == false)
             {
-                needlePoint.GetComponent<messenger>().EnteredMesh = false;
-                lockedPos = needle.transform.position;
+                needlePointInMesh = true;
+                needleLocked = true;
             }
-            if (needlePoint.GetComponent<messenger>().ExitedMesh == true)
-            {
-                needlePoint.GetComponent<messenger>().ExitedMesh = false;
-                if (needlePointInMesh == false)
-                {
-                    needlePointInMesh = true;
-                    needleLocked = true;
-                }
-                else
-                    needlePointInMesh = false;
-            }
+            else
+                needlePointInMesh = false;
         }
         else if (needleLocked == true)
         {
             if (needle.transform.position != lockedPos)
                 needle.transform.position = lockedPos;
 
-            if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true && needlePointInMesh == false)
+            if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true && (totalPoints == 2 || totalPoints == 0))
             {
                 Debug.Log("ThreadPoint Exited, needle is free to move");
                 needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;

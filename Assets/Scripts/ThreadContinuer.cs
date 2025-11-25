@@ -299,6 +299,43 @@ public class ThreadContinuer : MonoBehaviour
 
 
 
+        //
+        // Logic for needle locking and rotation when suturing is in progress
+        //
+        if (needleLocked == false)
+        {
+            if (needlePoint.GetComponent<messenger>().EnteredMesh == true)
+            {
+                needlePoint.GetComponent<messenger>().EnteredMesh = false;
+                lockedPos = needle.transform.position;
+            }
+            if (needlePoint.GetComponent<messenger>().ExitedMesh == true)
+            {
+                needlePoint.GetComponent<messenger>().ExitedMesh = false;
+                if (needlePointInMesh == false)
+                {
+                    needlePointInMesh = true;
+                    needleLocked = true;
+                }
+                else
+                    needlePointInMesh = false;
+            }
+        }
+        else if (needleLocked == true)
+        {
+            if (needle.transform.position != lockedPos)
+                needle.transform.position = lockedPos;
+
+            if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true && needlePointInMesh == false)
+            {
+                Debug.Log("ThreadPoint Exited, needle is free to move");
+                needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
+                needleLocked = false;
+            }
+        }
+        
+
+
         // Checking if the user is trying to tie the string
         if (TiePoint1 != null)
         {

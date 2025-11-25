@@ -29,31 +29,28 @@ public class GrabComponent : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "Tool")
+        if (other.gameObject.tag == "Tool" || other.gameObject.tag == "OtherGrabber")
         {
             Debug.Log("Collided with: " + other.gameObject);
             touchingObjects.Add(other.gameObject);
         }
-
-        // Debug.Log("Collided with: " + other.gameObject);
-        // touchingObjects.Add(other.gameObject);
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.tag == "Tool")
+        if (other.gameObject.tag == "Tool" || other.gameObject.tag == "OtherGrabber")
         {
             Debug.Log("Object exited: " + other.gameObject);
             touchingObjects.Remove(other.gameObject);
             // touchingObjects.RemoveAll(other.gameObject);
         }
-
-        // Debug.Log("Object exited: " + other.gameObject);
-        // touchingObjects.Remove(other.gameObject);
     }
 
 
 
+    //
+    // Currrently Unused
+    //
     void OnCollisionEnter(Collision collision)
     {
         Debug.Log("Collided with: " + collision.gameObject);

@@ -15,6 +15,7 @@ public class ThreadContinuer : MonoBehaviour
     // Line Renderer
     public LineRenderer threadRenderer;
     public Material threadMaterial;
+    public float threadWidth; // Recommended value: 0.0005f
 
     // Points for the line renderer
     // public List<Vector3> points;
@@ -28,26 +29,38 @@ public class ThreadContinuer : MonoBehaviour
     private Vector3 potentialPoint;
 
     // Objects related to the suture pairs
+    [Header("Objects related to the suture pairs")]
     private (GameObject, GameObject, Vector3) pair;
     public List<(GameObject, GameObject, Vector3)> suturePairs;
     private GameObject pairObj1;
 
-    public List<GameObject> threads;
+    public List<GameObject> threads; // Unused currently
 
-    // Objects related to the mesh deformation
+
+    // Objects and values related to the mesh deformation
+    [Header("Objects and values related to the mesh deformation")]
     public GameObject mesh;
-    public float DistanceToApplySuture;
-    public float MaxPullStrength;
+    public float DistanceToApplySuture; // Recommended value: 0.035
+    public float PullStrengthWeight; // Recommended value: ~30
+    public float MaxPullStrength; // Unused, but recommended value: 0.3
     public GameObject CutPoint;
 
-    // Objects related to tying
+    // Objects and values related to tieing
+    [Header("Objects and values related to tieing")]
     public GameObject TiePoint1;
     public GameObject TiePoint2;
     public bool Tied = false;
-    public float wA, wB, wC;
-    public float wCbias;
+    
+    public float wA, wB, wC; // These weights mostly stay at 1, might remove
+    public float wCbias; // Recommended value: 1.25
     public float DistanceBetweenMainPoints;
     public float DistanceFromMidPoint;
+
+    [Header("Other Values")]
+    public bool needleLocked;
+    public bool needlePointInMesh;
+    public Vector3 lockedPos;
+    public Quaternion lockedRot;
 
 
     void Start()
@@ -75,8 +88,8 @@ public class ThreadContinuer : MonoBehaviour
 
         // Set up settings on the line renderer
         threadRenderer = GetComponent<LineRenderer>();
-        threadRenderer.startWidth = 0.0005f;
-        threadRenderer.endWidth = 0.0005f;
+        threadRenderer.startWidth = threadWidth;
+        threadRenderer.endWidth = threadWidth;
         threadRenderer.material = threadMaterial;
         Debug.Log("Set line renderer settings");
 
@@ -135,7 +148,7 @@ public class ThreadContinuer : MonoBehaviour
                 CutPoint.name = "CutPoint";
                 CutPoint.AddComponent<SphereCollider>();
                 CutPoint.GetComponent<SphereCollider>().isTrigger = true;
-                CutPoint.GetComponent<SphereCollider>().radius = 0.01f;
+                CutPoint.GetComponent<SphereCollider>().radius = 0.002f;
                 CutPoint.AddComponent<messenger>();
                 CutPoint.GetComponent<messenger>().TargetTag = "Scissors";
 
@@ -166,16 +179,22 @@ public class ThreadContinuer : MonoBehaviour
         // Skin Deformation:
         // If the two items are pulled up a certain distance, apply the suture point for deformation
         //
-        if (suturePairs.Count > 0 && pair.Item1 != null)
+        if (suturePairs.Count > 0 /*&& pair.Item1 != null*/)
         {
             // Calculate the distance of the tools from the Cutpoint
             Vector3 temp = (needleThreadPoint.transform.position + threadSource.transform.position) / 2.0f;
-            DistanceFromMidPoint = Vector3.Distance(temp, CutPoint.transform.position);
+            // DistanceFromMidPoint = Vector3.Distance(temp, CutPoint.transform.position);
+            DistanceFromMidPoint = Vector3.Distance(temp, pair.Item3);
 
             // If that distance if more than the minimum, apply the pair
             if (DistanceFromMidPoint > DistanceToApplySuture)
             {
-                mesh.GetComponent<SuturingMeshDeformer>().ApplySuture(pair.Item1, pair.Item2);
+                if (pair.Item1 != null)
+                {
+                    mesh.GetComponent<SuturingMeshDeformer>().ApplySuture(pair.Item1, pair.Item2);
+                    pair.Item1 = null;
+                    pair.Item2 = null;
+                }
             }
 
             // Adjust the distance from cutpoint relative to the minimum distance
@@ -184,7 +203,8 @@ public class ThreadContinuer : MonoBehaviour
                 DistanceFromMidPoint = 0;
 
             // Set the mesh deformation pull strength to the distance from cutpoint.
-            mesh.GetComponent<SuturingMeshDeformer>().pullStrength = DistanceFromMidPoint;
+            mesh.GetComponent<SuturingMeshDeformer>().pullStrength = DistanceFromMidPoint * PullStrengthWeight;
+            // mesh.GetComponent<SuturingMeshDeformer>().pullStrength = DistanceFromMidPoint;
         }
 
 

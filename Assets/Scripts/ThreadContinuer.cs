@@ -7,6 +7,8 @@ public class ThreadContinuer : MonoBehaviour
     public GameObject needle;
     public GameObject needlePoint;
     public GameObject needleThreadPoint;
+    // The middle of the needle (while model is unfixed)
+    public GameObject needleMiddle;
 
     // Objects related to the thread
     // public GameObject thread; // might be needed in the future
@@ -62,6 +64,10 @@ public class ThreadContinuer : MonoBehaviour
     public Vector3 lockedPos;
     public Quaternion lockedRot;
 
+    [Header("General booleans")]
+    public bool needlePointEntered;
+    public bool needleThreadPointEntered;
+
 
     void Start()
     {
@@ -112,6 +118,11 @@ public class ThreadContinuer : MonoBehaviour
         {
             threadRenderer.SetPosition(i, points[i].transform.position);
         }
+
+        if (needlePoint.GetComponent<messenger>().ExitedMesh == true)
+            needlePointEntered = true;
+        if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true)
+            needleThreadPointEntered = true;
 
         // Get the distance between the 2 main points (needle thread point, and the thread source point)
         DistanceBetweenMainPoints = Vector3.Distance(needleThreadPoint.transform.position, threadSource.transform.position);
@@ -302,15 +313,14 @@ public class ThreadContinuer : MonoBehaviour
         //
         // Logic for needle locking and rotation when suturing is in progress
         //
-        
         if (needlePoint.GetComponent<messenger>().EnteredMesh == true)
         {
             needlePoint.GetComponent<messenger>().EnteredMesh = false;
-            lockedPos = needle.transform.position;
+            lockedPos = needleMiddle.transform.position;
         }
-        if (needlePoint.GetComponent<messenger>().ExitedMesh == true)
+        if (needlePointEntered == true)
         {
-            needlePoint.GetComponent<messenger>().ExitedMesh = false;
+            // needlePoint.GetComponent<messenger>().ExitedMesh = false;
             if (needlePointInMesh == false)
             {
                 needlePointInMesh = true;
@@ -321,13 +331,14 @@ public class ThreadContinuer : MonoBehaviour
         }
         else if (needleLocked == true)
         {
-            if (needle.transform.position != lockedPos)
-                needle.transform.position = lockedPos;
+            if (needleMiddle.transform.position != lockedPos)
+                needleMiddle.transform.position = lockedPos;
 
-            if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true && (totalPoints == 2 || totalPoints == 0))
+            if (needleThreadPointEntered == true && (totalPoints == 2 || totalPoints == 0))
             {
+                Debug.Log("Total Points: " + totalPoints);
                 Debug.Log("ThreadPoint Exited, needle is free to move");
-                needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
+                // needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
                 needleLocked = false;
             }
         }
@@ -357,6 +368,16 @@ public class ThreadContinuer : MonoBehaviour
         points[points.Count - 1] = needleThreadPoint;
         if (TiePoint2 != null)
             points[points.Count - 2] = TiePoint2;
+        
+
+        // Reset "Entered" booleans for next iterations
+        needlePoint.GetComponent<messenger>().EnteredMesh = false;
+        needlePoint.GetComponent<messenger>().ExitedMesh = false;
+        needlePointEntered = false;
+
+        needleThreadPoint.GetComponent<messenger>().EnteredMesh = false;
+        needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
+        needleThreadPointEntered = false;
     }
 
     void FinalizeSuture()

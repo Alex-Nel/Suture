@@ -5,11 +5,15 @@ using UnityEngine;
 public class GrabComponent : MonoBehaviour
 {
     public List<GameObject> touchingObjects = new List<GameObject>();
+    public GameObject initialParent;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        if (transform.parent != null)
+            initialParent = transform.parent.gameObject;
+        else
+            initialParent = null;
     }
 
     // Update is called once per frame
@@ -23,7 +27,10 @@ public class GrabComponent : MonoBehaviour
         }
         else
         {
-            transform.SetParent(null);
+            if (initialParent != null)
+                transform.SetParent(initialParent.transform);
+            else
+                transform.SetParent(null);
         }
     }
 

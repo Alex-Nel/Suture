@@ -119,13 +119,21 @@ public class ThreadContinuer : MonoBehaviour
             threadRenderer.SetPosition(i, points[i].transform.position);
         }
 
+
+
+        // If either the needlePoint, or needleThreadPoint enter a mesh,
+        // Set the variables to true to be used by other parts of the script.
         if (needlePoint.GetComponent<messenger>().ExitedMesh == true)
             needlePointEntered = true;
         if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true)
             needleThreadPointEntered = true;
 
+
+
         // Get the distance between the 2 main points (needle thread point, and the thread source point)
+        // (Needed for midpoint weight during tieing)
         DistanceBetweenMainPoints = Vector3.Distance(needleThreadPoint.transform.position, threadSource.transform.position);
+
 
         // When needleThreadPoint touches the skin, save the point as a potential point
         // If it exits, make the potential point a position for a suture
@@ -370,7 +378,7 @@ public class ThreadContinuer : MonoBehaviour
             points[points.Count - 2] = TiePoint2;
         
 
-        // Reset "Entered" booleans for next iterations
+        // Reset "Entered" booleans for next iteration
         needlePoint.GetComponent<messenger>().EnteredMesh = false;
         needlePoint.GetComponent<messenger>().ExitedMesh = false;
         needlePointEntered = false;
@@ -380,6 +388,10 @@ public class ThreadContinuer : MonoBehaviour
         needleThreadPointEntered = false;
     }
 
+
+    // This function finalizes a suture pair when the tie is set and the scissors "cut" it
+    // All intermediate gameobjects get destroyed and set to null for the next suture pair
+    // A gameobject gets made to show a small line renderer on the newly tied points
     void FinalizeSuture()
     {
         // Reset main thread renderer
@@ -395,7 +407,7 @@ public class ThreadContinuer : MonoBehaviour
         Destroy(TiePoint2);
         TiePoint2 = null;
 
-        // Reset hte line renderer
+        // Reset the line renderer
         threadRenderer.positionCount = 2;
         threadRenderer.SetPosition(0, threadSource.transform.position);
         points.Add(threadSource);
@@ -416,6 +428,8 @@ public class ThreadContinuer : MonoBehaviour
     }
 
 
+    // ----- CURRENTLY UNUSED -----
+    // Adds a new physics rope when a new suture point is made
     void AddThread(Vector3 point1, Vector3 point2)
     {
         GameObject thrd = new();

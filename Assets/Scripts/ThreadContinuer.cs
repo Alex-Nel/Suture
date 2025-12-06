@@ -62,7 +62,7 @@ public class ThreadContinuer : MonoBehaviour
     public bool needleLocked;
     public bool needlePointInMesh;
     public Vector3 lockedPos;
-    public Quaternion lockedRot;
+    public Vector4 lockedRot;
 
     [Header("General booleans")]
     public bool needlePointEntered;
@@ -143,7 +143,7 @@ public class ThreadContinuer : MonoBehaviour
             potentialPoint = needleThreadPoint.transform.position;
             needleThreadPoint.GetComponent<messenger>().EnteredMesh = false;
         }
-        else if (needleThreadPoint.GetComponent<messenger>().ExitedMesh == true)
+        else if (needleThreadPointEntered == true)
         {
             totalPoints++;
 
@@ -191,7 +191,7 @@ public class ThreadContinuer : MonoBehaviour
 
             potentialPoint = Vector3.zero;
 
-            needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
+            // needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
         }
 
         // 
@@ -325,6 +325,12 @@ public class ThreadContinuer : MonoBehaviour
         {
             needlePoint.GetComponent<messenger>().EnteredMesh = false;
             lockedPos = needleMiddle.transform.position;
+            // lockedRot = needleMiddle.transform.rotation;
+            Quaternion temp = needleMiddle.transform.rotation;
+            lockedRot.x = temp.x;
+            lockedRot.y = temp.y;
+            lockedRot.z = temp.z;
+            lockedRot.w = temp.w;
         }
         if (needlePointEntered == true)
         {
@@ -341,6 +347,10 @@ public class ThreadContinuer : MonoBehaviour
         {
             if (needleMiddle.transform.position != lockedPos)
                 needleMiddle.transform.position = lockedPos;
+            
+            Vector3 currentEuler = needleMiddle.transform.eulerAngles;
+
+            // needleMiddle.transform.rotation = Quaternion.Euler(needleMiddle.transform.eulerAngles.x, lockedRot.y, lockedRot.z);
 
             if (needleThreadPointEntered == true && (totalPoints == 2 || totalPoints == 0))
             {

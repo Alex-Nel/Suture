@@ -115,8 +115,8 @@ public class ThreadContinuerTEST : MonoBehaviour
 
         thrd.startTransform = threadSource.transform;
         thrd.endTransform = needleThreadPoint.transform;
-        thrd.segmentCount = 1;
-        thrd.segmentLength = Vector3.Distance(threadSource.transform.position, needleThreadPoint.transform.position) / thrd.segmentCount++;
+        thrd.segmentCount = 2;
+        thrd.segmentLength = Vector3.Distance(threadSource.transform.position, needleThreadPoint.transform.position) / (thrd.segmentCount+1);
         thrd.ropeRadius = 0.0005f;
     }
 
@@ -271,7 +271,7 @@ public class ThreadContinuerTEST : MonoBehaviour
                 TiePoint1.AddComponent<CapsuleCollider>();
                 TiePoint1.GetComponent<CapsuleCollider>().isTrigger = true;
                 TiePoint1.GetComponent<CapsuleCollider>().radius = 0.0005f;
-                TiePoint1.GetComponent<CapsuleCollider>().height = 0.01f;
+                TiePoint1.GetComponent<CapsuleCollider>().height = 0.005f;
                 TiePoint1.AddComponent<messenger>();
                 TiePoint1.GetComponent<messenger>().TargetTag = "TiePoint";
                 TiePoint1.AddComponent<Rigidbody>();
@@ -289,7 +289,7 @@ public class ThreadContinuerTEST : MonoBehaviour
                 TiePoint2.AddComponent<CapsuleCollider>();
                 TiePoint2.GetComponent<CapsuleCollider>().isTrigger = true;
                 TiePoint2.GetComponent<CapsuleCollider>().radius = 0.0005f;
-                TiePoint2.GetComponent<CapsuleCollider>().height = 0.01f;
+                TiePoint2.GetComponent<CapsuleCollider>().height = 0.005f;
                 TiePoint2.AddComponent<messenger>();
                 TiePoint2.GetComponent<messenger>().TargetTag = "TiePoint";
 

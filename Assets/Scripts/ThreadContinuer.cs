@@ -201,9 +201,13 @@ public class ThreadContinuer : MonoBehaviour
         if (suturePairs.Count > 0 /*&& pair.Item1 != null*/)
         {
             // Calculate the distance of the tools from the Cutpoint
-            Vector3 temp = (needleThreadPoint.transform.position + threadSource.transform.position) / 2.0f;
+            float needleDistance = Vector3.Distance(needleThreadPoint.transform.position, pair.Item3);
+            float ThreadStartDistance = Vector3.Distance(threadSource.transform.position, pair.Item3);
+            float DistanceFromMidPoint = (needleDistance + ThreadStartDistance) / 2;
+
+            // Vector3 temp = (needleThreadPoint.transform.position + threadSource.transform.position) / 2.0f;
             // DistanceFromMidPoint = Vector3.Distance(temp, CutPoint.transform.position);
-            DistanceFromMidPoint = Vector3.Distance(temp, pair.Item3);
+            // DistanceFromMidPoint = Vector3.Distance(temp, pair.Item3);
 
             // If that distance if more than the minimum, apply the pair
             if (DistanceFromMidPoint > DistanceToApplySuture)
@@ -261,7 +265,7 @@ public class ThreadContinuer : MonoBehaviour
                 TiePoint1.AddComponent<CapsuleCollider>();
                 TiePoint1.GetComponent<CapsuleCollider>().isTrigger = true;
                 TiePoint1.GetComponent<CapsuleCollider>().radius = 0.0005f;
-                TiePoint1.GetComponent<CapsuleCollider>().height = 0.01f;
+                TiePoint1.GetComponent<CapsuleCollider>().height = 0.005f;
                 TiePoint1.AddComponent<messenger>();
                 TiePoint1.GetComponent<messenger>().TargetTag = "TiePoint";
                 TiePoint1.AddComponent<Rigidbody>();
@@ -279,7 +283,7 @@ public class ThreadContinuer : MonoBehaviour
                 TiePoint2.AddComponent<CapsuleCollider>();
                 TiePoint2.GetComponent<CapsuleCollider>().isTrigger = true;
                 TiePoint2.GetComponent<CapsuleCollider>().radius = 0.0005f;
-                TiePoint2.GetComponent<CapsuleCollider>().height = 0.01f;
+                TiePoint2.GetComponent<CapsuleCollider>().height = 0.005f;
                 TiePoint2.AddComponent<messenger>();
                 TiePoint2.GetComponent<messenger>().TargetTag = "TiePoint";
 

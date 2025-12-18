@@ -62,6 +62,14 @@ public class ThreadController : MonoBehaviour
             joint.angularYMotion = ConfigurableJointMotion.Locked;
             joint.angularZMotion = ConfigurableJointMotion.Locked;
 
+            ///////////////////
+            joint.projectionMode = JointProjectionMode.PositionAndRotation;
+            joint.projectionDistance = 0.01f;
+            joint.projectionAngle = 1f;
+            capsule.GetComponent<Rigidbody>().linearDamping = 0.5f;
+            capsule.GetComponent<Rigidbody>().angularDamping = 0.5f;
+            ///////////////////
+
             MeshRenderer rend = capsule.GetComponent<MeshRenderer>();
             if (rend != null)
                 Destroy(rend);

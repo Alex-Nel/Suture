@@ -33,7 +33,7 @@ public class messenger : MonoBehaviour
     {
         if (other.tag == TargetTag)
             EnteredMesh = true;
-        Debug.Log(other.tag);
+        Debug.Log(gameObject.name + " touched by: " + other.tag);
         // ExitedMesh = false;
     }
 
@@ -41,7 +41,7 @@ public class messenger : MonoBehaviour
     {
         if (other.tag == TargetTag)
             ExitedMesh = true;
-        Debug.Log(other.tag);
+        Debug.Log(gameObject.name + " touched by: " + other.tag);
         // EnteredMesh = false;
     }
 }

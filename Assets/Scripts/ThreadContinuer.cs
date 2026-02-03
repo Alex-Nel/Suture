@@ -251,11 +251,10 @@ public class ThreadContinuer : MonoBehaviour
 
 
 
-
-
-
         // Checking if the user is trying to tie the string
-        if (TiePoint1 != null)
+        // Check BEFORE checking cutpoint since TiePoint can also be CutPoint
+        // if (TiePoint1 != null)
+        if (TiePoint1 != null && TiePoint1.GetComponent<messenger>().TargetTag != "Scissors")
         {
             // Debug.Log("Checking for a tie");
             // if (TiePoint1.GetComponent<messenger>().EnteredMesh == true && pair.Item2 != null)
@@ -266,17 +265,14 @@ public class ThreadContinuer : MonoBehaviour
                 Tied = true;
                 TiePoint1.GetComponent<messenger>().TargetTag = "Scissors";
             }
+            if (TiePoint1.GetComponent<messenger>().ExitedMesh == true)
+                TiePoint1.GetComponent<messenger>().ExitedMesh = false;
         }
 
 
 
 
-
-
-
-
-
-        if (points.Count > 8)
+        if (points.Count > 8 && CutPoint != TiePoint1)
         {
             // Destroy(CutPoint);
             CutPoint = TiePoint1;

@@ -202,8 +202,8 @@ MonoBehaviour:
   mDataSetPath: Vuforia/DualQRImage.xml
   mAspectRatio: 1
   mImageTargetType: 0
-  mWidth: 0.2
-  mHeight: 0.2
+  mWidth: 0.04
+  mHeight: 0.04
   mRuntimeTexture: {fileID: 0}
   mMotionHint: 1
   mTrackingOptimization: 0
@@ -2236,7 +2236,7 @@ Transform:
   m_GameObject: {fileID: 649751012}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -2.16814, y: 0.0401, z: -0.25453}
+  m_LocalPosition: {x: -2.169, y: 0.0401, z: -0.2228}
   m_LocalScale: {x: 0.09, y: 0.001, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2362,7 +2362,7 @@ Transform:
   m_GameObject: {fileID: 670791241}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.1641869, z: 0, w: 0.9864293}
-  m_LocalPosition: {x: -2.1551, y: 0.07018, z: -0.32468}
+  m_LocalPosition: {x: -2.1528, y: 0.0672, z: -0.3313}
   m_LocalScale: {x: 0.004, y: 0.004, z: 0.004}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -2620,8 +2620,8 @@ Transform:
   m_GameObject: {fileID: 756722297}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0, y: 0, z: 0.05}
-  m_LocalScale: {x: 0.099999994, y: 0.099999994, z: 0.099999994}
+  m_LocalPosition: {x: 0, y: 0, z: 0.01}
+  m_LocalScale: {x: 0.02, y: 0.02, z: 0.02}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1867938042}
@@ -3196,8 +3196,8 @@ Transform:
   m_GameObject: {fileID: 969392196}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0, y: 0, z: 0.05}
-  m_LocalScale: {x: 0.099999994, y: 0.099999994, z: 0.099999994}
+  m_LocalPosition: {x: 0, y: 0, z: 0.01}
+  m_LocalScale: {x: 0.02, y: 0.02, z: 0.02}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 14323899}
@@ -3666,7 +3666,7 @@ Transform:
   m_GameObject: {fileID: 1032592578}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.8, y: 0.3, z: -1.364}
+  m_LocalPosition: {x: -1.8, y: 0.3, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3985,14 +3985,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1101979566}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.22274627, y: -0.0105282655, z: -0.97373253, w: 0.046024196}
-  m_LocalPosition: {x: -2.1480832, y: 0.060409654, z: -0.34326428}
+  m_LocalRotation: {x: 0.1903959, y: -0.012045795, z: -0.98057145, w: 0.04565052}
+  m_LocalPosition: {x: -2.1481142, y: 0.06040672, z: -0.34327078}
   m_LocalScale: {x: 0.002, y: 0.002, z: 0.002}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 243085773}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: -25.77, z: -174.588}
+  m_LocalEulerAnglesHint: {x: -0.358, y: -21.993, z: -174.6}
 --- !u!1 &1132464218
 GameObject:
   m_ObjectHideFlags: 0
@@ -4196,32 +4196,32 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: c7d51b10f2f75c048a81bb07485effbe,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.5
+      value: 1.8999999
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c7d51b10f2f75c048a81bb07485effbe,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5
+      value: 1.8999999
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c7d51b10f2f75c048a81bb07485effbe,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.5
+      value: 1.8999999
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c7d51b10f2f75c048a81bb07485effbe,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -2
+      value: -1.9593
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c7d51b10f2f75c048a81bb07485effbe,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.035
+      value: -0.06
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c7d51b10f2f75c048a81bb07485effbe,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.37053
+      value: -0.381
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c7d51b10f2f75c048a81bb07485effbe,
         type: 3}
@@ -6004,8 +6004,8 @@ MonoBehaviour:
   mDataSetPath: Vuforia/DualQRImage.xml
   mAspectRatio: 1
   mImageTargetType: 0
-  mWidth: 0.2
-  mHeight: 0.2
+  mWidth: 0.04
+  mHeight: 0.04
   mRuntimeTexture: {fileID: 0}
   mMotionHint: 1
   mTrackingOptimization: 0

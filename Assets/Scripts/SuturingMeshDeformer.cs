@@ -62,7 +62,7 @@ public class SuturingMeshDeformer : MonoBehaviour
                 }
             }
 
-            if (Vector3.Distance(vaWorld, vbWorld) < 0.0012)
+            if (Vector3.Distance(vaWorld, vbWorld) < 0.0005)
             {
                 suturePairs.RemoveAt(i);
                 Debug.Log("Removing Pair");

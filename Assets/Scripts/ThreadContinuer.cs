@@ -162,7 +162,7 @@ public class ThreadContinuer : MonoBehaviour
             // Make a new GameObject at the new suture point
             GameObject obj = new();
             obj.name = "Suture Point";
-            obj.transform.position = potentialPoint;
+            obj.transform.position = (potentialPoint + needleThreadPoint.transform.position) / 2;
 
             // If total points only eqals 1, that means a new suture pair is being made. Hold suture point in pairObj1 until 4th is made.
             // If a 4th point is made, that is the other suture pair. Create a midpoint, and make the suture pair tuple. Add that to the list
@@ -213,7 +213,6 @@ public class ThreadContinuer : MonoBehaviour
         // if (suturePairs.Count > 0 /*&& pair.Item1 != null*/)
         if (Tied)
         {
-
             FirstAndLastMidPoint = (points[2].transform.position + points[points.Count-3].transform.position) / 2.0f;
 
             float needleDistance = Vector3.Distance(needleThreadPoint.transform.position, FirstAndLastMidPoint);
@@ -221,7 +220,6 @@ public class ThreadContinuer : MonoBehaviour
             float DistanceFromMidPoint = (needleDistance + ThreadStartDistance) / 2;
 
             // If that distance if more than the minimum, apply the pair
-            // if (DistanceFromMidPoint > DistanceToApplySuture)
             if (needleDistance > DistanceToApplySuture && ThreadStartDistance > DistanceToApplySuture)
             {
                 foreach (var pair in suturePairs)
@@ -253,7 +251,6 @@ public class ThreadContinuer : MonoBehaviour
 
         // Checking if the user is trying to tie the string
         // Check BEFORE checking cutpoint since TiePoint can also be CutPoint
-        // if (TiePoint1 != null)
         if (TiePoint1 != null && TiePoint1.GetComponent<messenger>().TargetTag != "Scissors")
         {
             // Debug.Log("Checking for a tie");
@@ -272,11 +269,14 @@ public class ThreadContinuer : MonoBehaviour
 
 
 
+        // If points list has more than 8 points, more than 2 pairs are being made, so change cutpoint
         if (points.Count > 8 && CutPoint != TiePoint1)
         {
             // Destroy(CutPoint);
             CutPoint = TiePoint1;
         }
+
+
         //
         // Cutting and finalizing suture:
         // If there is a cut point, listen for a cut instruction
@@ -452,16 +452,25 @@ public class ThreadContinuer : MonoBehaviour
     {
         // Add a line for the new pair
         GameObject obj = new();
+        obj.name = "Finalized Suture";
         obj.AddComponent<LineRenderer>();
         obj.GetComponent<LineRenderer>().startWidth = 0.001f;
         obj.GetComponent<LineRenderer>().endWidth = 0.001f;
         obj.GetComponent<LineRenderer>().material = threadMaterial;
+        obj.GetComponent<LineRenderer>().loop = true;
 
-        obj.GetComponent<LineRenderer>().positionCount = 2;
+        //////////// Old routine
+        //obj.GetComponent<LineRenderer>().positionCount = 2;
         // obj.GetComponent<LineRenderer>().SetPosition(0, suturePairs[suturePairs.Count - 1].Item1.transform.position);
         // obj.GetComponent<LineRenderer>().SetPosition(1, suturePairs[suturePairs.Count - 1].Item2.transform.position);
-        obj.GetComponent<LineRenderer>().SetPosition(0, points[2].transform.position);
-        obj.GetComponent<LineRenderer>().SetPosition(1, points[points.Count-3].transform.position);
+        //obj.GetComponent<LineRenderer>().SetPosition(0, points[2].transform.position);
+        //obj.GetComponent<LineRenderer>().SetPosition(1, points[points.Count-3].transform.position);
+
+        // Copy current suture points to the new object when finilizing
+        obj.GetComponent<LineRenderer>().positionCount = GetComponent<LineRenderer>().positionCount - 4;
+        Vector3[] sourcePointsList = new Vector3[GetComponent<LineRenderer>().positionCount];
+        GetComponent<LineRenderer>().GetPositions(sourcePointsList);
+        obj.GetComponent<LineRenderer>().SetPositions(sourcePointsList[2..^2]);
 
 
         // Reset main thread renderer

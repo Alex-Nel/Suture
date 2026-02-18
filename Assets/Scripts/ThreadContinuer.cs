@@ -122,14 +122,23 @@ public class ThreadContinuer : MonoBehaviour
         Debug.Log("Line renderer has: " + threadRenderer.positionCount + " points");
     }
 
+
+
+
+
     // Update is called once per frame
     void Update()
     {
+        //
         // Set each position of the line renderer to the poinst list.
+        //
         for (int i = 0; i < points.Count; i++)
         {
             threadRenderer.SetPosition(i, points[i].transform.position);
         }
+
+
+
 
 
 
@@ -142,11 +151,20 @@ public class ThreadContinuer : MonoBehaviour
 
 
 
+
+
+
+
         // Get the distance between the 2 main points (needle thread point, and the thread source point)
         // (Needed for midpoint weight during tieing)
         DistanceBetweenMainPoints = Vector3.Distance(needleThreadPoint.transform.position, threadSource.transform.position);
 
 
+
+
+
+
+        //// ----------------Logic for making suturing points---------------- ////
         // When needleThreadPoint touches the skin, save the point as a potential point
         // If it exits, make the potential point a position for a suture
         if (needleThreadPoint.GetComponent<messenger>().EnteredMesh == true)
@@ -202,15 +220,19 @@ public class ThreadContinuer : MonoBehaviour
             threadRenderer.positionCount++;
 
             potentialPoint = Vector3.zero;
-
             // needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
         }
+
+
+
+
+
+
 
         // 
         // Skin Deformation:
         // If the two items are pulled up a certain distance, apply the suture point for deformation
         //
-        // if (suturePairs.Count > 0 /*&& pair.Item1 != null*/)
         if (Tied)
         {
             FirstAndLastMidPoint = (points[2].transform.position + points[points.Count-3].transform.position) / 2.0f;
@@ -249,6 +271,9 @@ public class ThreadContinuer : MonoBehaviour
 
 
 
+
+
+
         // Checking if the user is trying to tie the string
         // Check BEFORE checking cutpoint since TiePoint can also be CutPoint
         if (TiePoint1 != null && TiePoint1.GetComponent<messenger>().TargetTag != "Scissors")
@@ -269,12 +294,18 @@ public class ThreadContinuer : MonoBehaviour
 
 
 
+
+
+
         // If points list has more than 8 points, more than 2 pairs are being made, so change cutpoint
         if (points.Count > 8 && CutPoint != TiePoint1)
         {
             // Destroy(CutPoint);
             CutPoint = TiePoint1;
         }
+
+
+
 
 
         //
@@ -295,6 +326,9 @@ public class ThreadContinuer : MonoBehaviour
                 }
             }
         }
+
+
+
 
 
         //
@@ -368,6 +402,8 @@ public class ThreadContinuer : MonoBehaviour
 
 
 
+
+
         //
         // Logic for needle locking and rotation when suturing is in progress
         //
@@ -413,6 +449,8 @@ public class ThreadContinuer : MonoBehaviour
         
 
 
+
+
         // Always make the first point the position of the thread source
         // points[0] = threadSource.transform.position;
         points[0] = threadSource;
@@ -434,15 +472,13 @@ public class ThreadContinuer : MonoBehaviour
         needleThreadPoint.GetComponent<messenger>().EnteredMesh = false;
         needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
         needleThreadPointEntered = false;
-
-        // if (TiePoint1 != null && TiePoint2 != null)
-        // {
-        //     TiePoint1.GetComponent<messenger>().EnteredMesh = false;
-        //     TiePoint1.GetComponent<messenger>().ExitedMesh = false;
-        //     TiePoint2.GetComponent<messenger>().EnteredMesh = false;
-        //     TiePoint2.GetComponent<messenger>().ExitedMesh = false;
-        // }
     }
+
+
+
+
+
+
 
 
     // This function finalizes a suture pair when the tie is set and the scissors "cut" it

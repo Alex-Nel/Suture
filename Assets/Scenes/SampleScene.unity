@@ -1848,7 +1848,7 @@ GameObject:
   - component: {fileID: 404518475}
   - component: {fileID: 404518474}
   m_Layer: 0
-  m_Name: ThreadContinuer (2)
+  m_Name: ThreadContinuer3D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1873,9 +1873,8 @@ MonoBehaviour:
   threadSource: {fileID: 1311761194}
   threadRenderer: {fileID: 404518475}
   threadMaterial: {fileID: 2100000, guid: 107a73775f106564bb78e9ac47242aa7, type: 2}
-  threadWidth: 0.0005
+  threadWidth: 0.0004
   points: []
-  threads: []
   mesh: {fileID: 467561414}
   DistanceToApplySuture: 0.03
   PullStrengthWeight: 40
@@ -2313,7 +2312,7 @@ Transform:
   m_GameObject: {fileID: 410094042}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -2.2006, y: 0.0401, z: 0.57703996}
+  m_LocalPosition: {x: -2.2166, y: 0.0401, z: 0.6895}
   m_LocalScale: {x: 0.09, y: 0.001, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2662,7 +2661,7 @@ GameObject:
   m_Component:
   - component: {fileID: 603737095}
   m_Layer: 0
-  m_Name: ---------------------
+  m_Name: ------------------------------------------
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3809,7 +3808,7 @@ GameObject:
   m_Component:
   - component: {fileID: 915238861}
   m_Layer: 0
-  m_Name: --------------------- (1)
+  m_Name: ------------------------------------------
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4853,7 +4852,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1132464219}
   m_Layer: 0
-  m_Name: ---------------------
+  m_Name: ------------------------------------------
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7503,7 +7502,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1961159368}
   m_Layer: 0
-  m_Name: ---------------------
+  m_Name: ------------------------------------------
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

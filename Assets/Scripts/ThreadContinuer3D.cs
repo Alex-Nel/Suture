@@ -2,15 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-//[System.Serializable]
-//public class SuturePair
-//{
-//    public GameObject pointA;
-//    public GameObject pointB;
-//    public Vector3 midpoint;
-//    public bool applied;
-//}
-
 
 public class ThreadContinuer3D : MonoBehaviour
 {
@@ -18,6 +9,7 @@ public class ThreadContinuer3D : MonoBehaviour
     public GameObject needle;
     public GameObject needlePoint;
     public GameObject needleThreadPoint;
+
     // The middle of the needle (while model is unfixed)
     public GameObject needleMiddle;
 
@@ -31,11 +23,9 @@ public class ThreadContinuer3D : MonoBehaviour
     public float threadWidth; // Recommended value: 0.0005f
 
     // Points for the line renderer
-    // public List<Vector3> points;
     public List<GameObject> points;
 
-    // Bool to know when a pair is starting // Future use
-    // private bool startingSuturePair = false;
+    // totalPoints count to know when a suture pair is made.
     private int totalPoints = 0;
 
     // Holds a potential point to add
@@ -47,8 +37,6 @@ public class ThreadContinuer3D : MonoBehaviour
     public List<(GameObject, GameObject, Vector3)> suturePairs;
     private GameObject pairObj1;
 
-    public List<GameObject> threads; // Unused currently
-
 
     // Objects and values related to the mesh deformation
     [Header("Objects and values related to the mesh deformation")]
@@ -57,7 +45,7 @@ public class ThreadContinuer3D : MonoBehaviour
     public float PullStrengthWeight; // Recommended value: ~30
     public float MaxPullStrength; // Unused, but recommended value: 0.3
     public GameObject CutPoint;
-    public Vector3 FirstAndLastMidPoint;
+    public Vector3 FirstAndLastMidPoint; // Used to determine when a pair is applied
 
     // Objects and values related to tieing
     [Header("Objects and values related to tieing")]
@@ -85,9 +73,6 @@ public class ThreadContinuer3D : MonoBehaviour
     {
         // Make a new points list
         points = new();
-
-        // Make a new threads list
-        threads = new();
 
         // Make a new suturePairs list
         suturePairs = new();
@@ -120,6 +105,14 @@ public class ThreadContinuer3D : MonoBehaviour
         Debug.Log("Line renderer has: " + threadRenderer.points.Count + " points");
     }
 
+
+
+
+
+
+
+
+
     // Update is called once per frame
     void Update()
     {
@@ -128,6 +121,8 @@ public class ThreadContinuer3D : MonoBehaviour
         {
             threadRenderer.SetPoint(i, points[i].transform.position, threadWidth);
         }
+
+
 
 
 
@@ -140,11 +135,17 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
+
+
         // Get the distance between the 2 main points (needle thread point, and the thread source point)
         // (Needed for midpoint weight during tieing)
         DistanceBetweenMainPoints = Vector3.Distance(needleThreadPoint.transform.position, threadSource.transform.position);
 
 
+
+
+
+        //// ----------------Logic for making suturing points---------------- ////
         // When needleThreadPoint touches the skin, save the point as a potential point
         // If it exits, make the potential point a position for a suture
         if (needleThreadPoint.GetComponent<messenger>().EnteredMesh == true)
@@ -204,11 +205,12 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
+
+
         // 
         // Skin Deformation:
         // If the two items are pulled up a certain distance, apply the suture point for deformation
         //
-        // if (suturePairs.Count > 0 /*&& pair.Item1 != null*/)
         if (Tied)
         {
             FirstAndLastMidPoint = (points[2].transform.position + points[points.Count-3].transform.position) / 2.0f;
@@ -247,12 +249,12 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
+
         // Checking if the user is trying to tie the string
         // Check BEFORE checking cutpoint since TiePoint can also be CutPoint
         if (TiePoint1 != null && TiePoint1.GetComponent<messenger>().TargetTag != "Scissors")
         {
             // Debug.Log("Checking for a tie");
-            // if (TiePoint1.GetComponent<messenger>().EnteredMesh == true && pair.Item2 != null)
             if (TiePoint1.GetComponent<messenger>().EnteredMesh == true)
             {
                 TiePoint1.GetComponent<messenger>().EnteredMesh = false;
@@ -267,12 +269,17 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
+
+
         // If points list has more than 8 points, more than 2 pairs are being made, so change cutpoint
         if (points.Count > 8 && CutPoint != TiePoint1)
         {
-            // Destroy(CutPoint);
             CutPoint = TiePoint1;
         }
+
+
+
+
 
 
         //
@@ -293,6 +300,9 @@ public class ThreadContinuer3D : MonoBehaviour
                 }
             }
         }
+
+
+
 
 
         //
@@ -316,7 +326,6 @@ public class ThreadContinuer3D : MonoBehaviour
                 TiePoint1.GetComponent<Rigidbody>().isKinematic = true;
 
                 points.Insert(1, TiePoint1);
-                //threadRenderer.positionCount++;
                 threadRenderer.SetPositions(threadRenderer.points.Count + 1);
                 Debug.Log("Tie point 1 Created");
             }
@@ -333,7 +342,6 @@ public class ThreadContinuer3D : MonoBehaviour
                 TiePoint2.GetComponent<messenger>().TargetTag = "TiePoint";
 
                 points.Insert(points.Count - 1, TiePoint2);
-                //threadRenderer.positionCount++;
                 threadRenderer.SetPositions(threadRenderer.points.Count + 1);
                 Debug.Log("Tie point 2 Created");
             }
@@ -368,6 +376,8 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
+
+
         //
         // Logic for needle locking and rotation when suturing is in progress
         //
@@ -384,7 +394,6 @@ public class ThreadContinuer3D : MonoBehaviour
         }
         if (needlePointEntered == true)
         {
-            // needlePoint.GetComponent<messenger>().ExitedMesh = false;
             if (needlePointInMesh == false)
             {
                 needlePointInMesh = true;
@@ -406,21 +415,20 @@ public class ThreadContinuer3D : MonoBehaviour
             {
                 Debug.Log("Total Points: " + totalPoints);
                 Debug.Log("ThreadPoint Exited, needle is free to move");
-                // needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
                 needleLocked = false;
             }
         }
         
 
 
+
+
         // Always make the first point the position of the thread source
-        // points[0] = threadSource.transform.position;
         points[0] = threadSource;
         if (TiePoint1 != null)
             points[1] = TiePoint1;
 
         // Alays make the last point the position of the needleThreadPoint
-        // points[points.Count - 1] = needleThreadPoint.transform.position;
         points[points.Count - 1] = needleThreadPoint;
         if (TiePoint2 != null)
             points[points.Count - 2] = TiePoint2;
@@ -435,13 +443,6 @@ public class ThreadContinuer3D : MonoBehaviour
         needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
         needleThreadPointEntered = false;
 
-        // if (TiePoint1 != null && TiePoint2 != null)
-        // {
-        //     TiePoint1.GetComponent<messenger>().EnteredMesh = false;
-        //     TiePoint1.GetComponent<messenger>().ExitedMesh = false;
-        //     TiePoint2.GetComponent<messenger>().EnteredMesh = false;
-        //     TiePoint2.GetComponent<messenger>().ExitedMesh = false;
-        // }
     }
 
 
@@ -488,7 +489,6 @@ public class ThreadContinuer3D : MonoBehaviour
         TiePoint2 = null;
 
         // Reset the line renderer
-        //threadRenderer.positionCount = 2;
         threadRenderer.SetPositions(2);
         threadRenderer.SetPoint(0, threadSource.transform.position, threadWidth);
         points.Add(threadSource);
@@ -496,53 +496,4 @@ public class ThreadContinuer3D : MonoBehaviour
         threadRenderer.SetPoint(1, needleThreadPoint.transform.position, threadWidth);
         points.Add(needleThreadPoint);
     }
-
-
-
-
-
-    // ----- CURRENTLY UNUSED -----
-    // Adds a new physics rope when a new suture point is made
-    //void AddThread(Vector3 point1, Vector3 point2)
-    //{
-    //    GameObject thrd = new();
-    //    thrd.AddComponent<ThreadController>();
-
-    //    thrd.GetComponent<ThreadController>().ropeRadius = threadRenderer.startWidth;
-    //    thrd.GetComponent<ThreadController>().ropeMaterial = threadMaterial;
-
-
-    //    // Make two new objects for the start and end point of the thread.
-    //    GameObject strt = new();
-    //    strt.transform.position = point1;
-    //    strt.AddComponent<Rigidbody>();
-
-    //    GameObject end = new();
-    //    end.transform.position = point2;
-    //    end.AddComponent<Rigidbody>();
-
-    //    // In the very unique case that point 1 is the threadSrc, use that instead, otherwise use the new object
-    //    if (point1 == points[0].transform.position)
-    //    {
-    //        thrd.GetComponent<ThreadController>().startTransform = threadSource.transform;
-    //        Destroy(strt);
-    //    }
-    //    else
-    //    {
-    //        thrd.GetComponent<ThreadController>().startTransform = strt.transform;
-    //    }
-    //    thrd.GetComponent<ThreadController>().endTransform = end.transform;
-
-    //    // Set the segment count based on distance (kind of broken right now)
-    //    // thrd.GetComponent<ThreadController>().segmentCount = (int)(Vector3.Distance(point1, point2) / 0.02f);
-    //    thrd.GetComponent<ThreadController>().segmentCount = 2;
-    //    thrd.GetComponent<ThreadController>().segmentLength = Vector3.Distance(point1, point2) / 3f;
-
-
-    //    // Make rigid bodies and make them kinematic so that they don't move
-    //    strt.GetComponent<Rigidbody>().isKinematic = true;
-    //    end.GetComponent<Rigidbody>().isKinematic = true;
-
-    //    threads.Add(thrd);
-    //}
 }

@@ -91,6 +91,8 @@ public class ThreadContinuer3D : MonoBehaviour
 
         // Set up settings on the line renderer
         threadRenderer = GetComponent<LineRenderer3D>();
+        if (threadRenderer == null)
+            threadRenderer = gameObject.AddComponent<LineRenderer3D>();
         threadRenderer.resolution = 5;
         threadRenderer.autoUpdate = true;
         threadRenderer.material = threadMaterial;

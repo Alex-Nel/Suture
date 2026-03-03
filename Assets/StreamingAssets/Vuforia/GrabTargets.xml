@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QCARConfig>
+  <Tracking>
+    <ImageTarget name="multi_01_face6" size="0.010000 0.010000" />
+    <ImageTarget name="multi_01_face5" size="0.010000 0.010000" />
+    <ImageTarget name="multi_01_face4" size="0.010000 0.010000" />
+    <ImageTarget name="multi_01_face3" size="0.010000 0.010000" />
+    <ImageTarget name="multi_01_face2" size="0.010000 0.010000" />
+    <ImageTarget name="multi_01_face1" size="0.010000 0.010000" />
+  </Tracking>
+</QCARConfig>

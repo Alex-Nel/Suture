@@ -63,7 +63,14 @@ public class LineRenderer3D : MonoBehaviour
         sines = new NativeArray<float>(resolution, Allocator.TempJob);
         cosines = new NativeArray<float>(resolution, Allocator.TempJob);
         for(int i = 0; i < points.Count; i++){
-            nodes[i] = points[i];
+            /// This line will make the line dependent on the objects global position
+            //nodes[i] = points[i];
+
+            /// These line will make the line use the points absolute position (objects global position won't matter)
+            Vector3 localPos = transform.InverseTransformPoint(points[i].position);
+            Point p = points[i];
+            p.position = localPos;
+            nodes[i] = p;
         }
 
         var pointsJob = new CalculatePointData()

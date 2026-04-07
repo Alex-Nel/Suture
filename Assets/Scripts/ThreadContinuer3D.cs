@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 
@@ -51,6 +53,9 @@ public class ThreadContinuer3D : MonoBehaviour
     [Header("Objects and values related to tieing")]
     public GameObject TiePoint1;
     public GameObject TiePoint2;
+    public List<GameObject> TiePoints = new List<GameObject>();
+    public int desiredTiePointCount = 4;
+    List<(GameObject a, GameObject b)> TiedPairs = new();
     public bool Tied = false;
     
     public float wA, wB, wC; // These weights mostly stay at 1, might remove
@@ -195,7 +200,7 @@ public class ThreadContinuer3D : MonoBehaviour
 
             // If there are more than 3 points, then insert at point.Count - 2 to account fo the tie objects.
             // Otherwise insert at the point.Count - 1.
-            if (points.Count >= 3)
+            if (points.Count >= 6)
                 points.Insert(points.Count - 2, obj);
             else
                 points.Insert(points.Count - 1, obj);
@@ -254,18 +259,46 @@ public class ThreadContinuer3D : MonoBehaviour
 
         // Checking if the user is trying to tie the string
         // Check BEFORE checking cutpoint since TiePoint can also be CutPoint
-        if (TiePoint1 != null && TiePoint1.GetComponent<messenger>().TargetTag != "Scissors")
+        //if (TiePoint1 != null && TiePoint1.GetComponent<messenger>().TargetTag != "Scissors")
+        //{
+        //    // Debug.Log("Checking for a tie");
+        //    if (TiePoint1.GetComponent<messenger>().EnteredMesh == true)
+        //    {
+        //        TiePoint1.GetComponent<messenger>().EnteredMesh = false;
+        //        Debug.Log("Tied Points touched, tie started");
+        //        Tied = true;
+        //        TiePoint1.GetComponent<messenger>().TargetTag = "Scissors";
+        //    }
+        //    if (TiePoint1.GetComponent<messenger>().ExitedMesh == true)
+        //        TiePoint1.GetComponent<messenger>().ExitedMesh = false;
+        //}
+
+        foreach (var tp in TiePoints)
         {
-            // Debug.Log("Checking for a tie");
-            if (TiePoint1.GetComponent<messenger>().EnteredMesh == true)
+            var msg = tp.GetComponent<messenger>();
+
+            if (msg.TargetTag == "Scissors") continue;
+
+            if (msg.EnteredMesh == true)
             {
-                TiePoint1.GetComponent<messenger>().EnteredMesh = false;
-                Debug.Log("Tied Points touched, tie started");
-                Tied = true;
-                TiePoint1.GetComponent<messenger>().TargetTag = "Scissors";
+                msg.EnteredMesh = false;
+                GameObject other = msg.col.gameObject;
+
+                if (other != null && other.CompareTag("TiePoint"))
+                {
+                    if (IsAlreadyTied(tp) || IsAlreadyTied(other)) continue;
+
+                    TiedPairs.Add((tp, other));
+
+                    Debug.Log($"Tied {tp.name} with {other.name}");
+
+                    msg.TargetTag = "Scissors";
+                    other.GetComponent<messenger>().TargetTag = "Scissors";
+                }
             }
-            if (TiePoint1.GetComponent<messenger>().ExitedMesh == true)
-                TiePoint1.GetComponent<messenger>().ExitedMesh = false;
+
+            if (msg.EnteredMesh == true)
+                msg.ExitedMesh = false;
         }
 
 
@@ -307,73 +340,184 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
+        ////
+        //// If there are more than 3 points, make the tie points if they haven't been made
+        //// Set them as the midpoints of the first 2, and last 2 points
+        ////
+        //if (points.Count >= 3)
+        //{
+        //    if (TiePoint1 == null)
+        //    {
+        //        TiePoint1 = new();
+        //        TiePoint1.name = "TiePoint1";
+        //        TiePoint1.tag = "TiePoint";
+        //        TiePoint1.AddComponent<CapsuleCollider>();
+        //        TiePoint1.GetComponent<CapsuleCollider>().isTrigger = true;
+        //        TiePoint1.GetComponent<CapsuleCollider>().radius = 0.0005f;
+        //        TiePoint1.GetComponent<CapsuleCollider>().height = 0.005f;
+        //        TiePoint1.AddComponent<messenger>();
+        //        TiePoint1.GetComponent<messenger>().TargetTag = "TiePoint";
+        //        TiePoint1.AddComponent<Rigidbody>();
+        //        TiePoint1.GetComponent<Rigidbody>().isKinematic = true;
+
+        //        points.Insert(1, TiePoint1);
+        //        threadRenderer.SetPositions(threadRenderer.points.Count + 1);
+        //        Debug.Log("Tie point 1 Created");
+        //    }
+        //    if (TiePoint2 == null)
+        //    {
+        //        TiePoint2 = new();
+        //        TiePoint2.name = "TiePoint2";
+        //        TiePoint2.tag = "TiePoint";
+        //        TiePoint2.AddComponent<CapsuleCollider>();
+        //        TiePoint2.GetComponent<CapsuleCollider>().isTrigger = true;
+        //        TiePoint2.GetComponent<CapsuleCollider>().radius = 0.0005f;
+        //        TiePoint2.GetComponent<CapsuleCollider>().height = 0.005f;
+        //        TiePoint2.AddComponent<messenger>();
+        //        TiePoint2.GetComponent<messenger>().TargetTag = "TiePoint";
+
+        //        points.Insert(points.Count - 1, TiePoint2);
+        //        threadRenderer.SetPositions(threadRenderer.points.Count + 1);
+        //        Debug.Log("Tie point 2 Created");
+        //    }
+
+        //    // Dependong on whether the string is tied, make the tie points have a different position
+        //    // If they are tied, make them the midpoint between the two "ends", and the cutpoint
+        //    if (Tied == false)
+        //    {
+        //        TiePoint1.transform.position = (points[0].transform.position + points[2].transform.position) / 2.0f;
+        //        TiePoint1.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[0].transform.position - points[2].transform.position);
+        //        TiePoint2.transform.position = (points[points.Count - 1].transform.position + points[points.Count - 3].transform.position) / 2.0f;
+        //        TiePoint2.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[points.Count - 1].transform.position - points[points.Count - 3].transform.position);
+        //    }
+        //    else if (Tied == true)
+        //    {
+        //        // wA = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
+        //        // wB = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
+        //        wC = ((DistanceBetweenMainPoints + 0.00001f) * 10.0f) + wCbias;
+        //        if (wC < 0.5f)
+        //            wC = 0.5f;
+
+        //        Vector3 MidPoint = (
+        //            threadSource.transform.position * wA +
+        //            needleThreadPoint.transform.position * wB +
+        //            FirstAndLastMidPoint * wC
+        //        ) / (wA + wB + wC);
+
+        //        TiePoint1.transform.position = MidPoint;
+        //        TiePoint2.transform.position = MidPoint;
+        //    }
+        //}
+
         //
         // If there are more than 3 points, make the tie points if they haven't been made
         // Set them as the midpoints of the first 2, and last 2 points
         //
-        if (points.Count >= 3)
+        if (points.Count >= 6)
         {
-            if (TiePoint1 == null)
+            if (TiePoints.Count == 0)
             {
-                TiePoint1 = new();
-                TiePoint1.name = "TiePoint1";
-                TiePoint1.tag = "TiePoint";
-                TiePoint1.AddComponent<CapsuleCollider>();
-                TiePoint1.GetComponent<CapsuleCollider>().isTrigger = true;
-                TiePoint1.GetComponent<CapsuleCollider>().radius = 0.0005f;
-                TiePoint1.GetComponent<CapsuleCollider>().height = 0.005f;
-                TiePoint1.AddComponent<messenger>();
-                TiePoint1.GetComponent<messenger>().TargetTag = "TiePoint";
-                TiePoint1.AddComponent<Rigidbody>();
-                TiePoint1.GetComponent<Rigidbody>().isKinematic = true;
+                //List<int> insertIndices = new List<int>();
 
-                points.Insert(1, TiePoint1);
-                threadRenderer.SetPositions(threadRenderer.points.Count + 1);
-                Debug.Log("Tie point 1 Created");
-            }
-            if (TiePoint2 == null)
-            {
-                TiePoint2 = new();
-                TiePoint2.name = "TiePoint2";
-                TiePoint2.tag = "TiePoint";
-                TiePoint2.AddComponent<CapsuleCollider>();
-                TiePoint2.GetComponent<CapsuleCollider>().isTrigger = true;
-                TiePoint2.GetComponent<CapsuleCollider>().radius = 0.0005f;
-                TiePoint2.GetComponent<CapsuleCollider>().height = 0.005f;
-                TiePoint2.AddComponent<messenger>();
-                TiePoint2.GetComponent<messenger>().TargetTag = "TiePoint";
+                //int half = desiredTiePointCount / 2;
 
-                points.Insert(points.Count - 1, TiePoint2);
-                threadRenderer.SetPositions(threadRenderer.points.Count + 1);
-                Debug.Log("Tie point 2 Created");
+                //for (int i = desiredTiePointCount - 1; i >= 0; i--)
+                for (int i = 0; i < desiredTiePointCount; i++)
+                {
+                    int logicalIndex = i;
+
+                    GameObject tp = new GameObject();
+                    tp.name = "TiePoint" + logicalIndex;
+                    tp.tag = "TiePoint";
+
+                    var col = tp.AddComponent<CapsuleCollider>();
+                    col.isTrigger = true;
+                    col.radius = 0.0005f;
+                    col.height = 0.005f;
+
+                    var msg = tp.AddComponent<messenger>();
+                    msg.TargetTag = "TiePoint";
+
+                    var rb = tp.AddComponent<Rigidbody>();
+                    rb.isKinematic = true;
+
+                    int insertIndex = 0;
+
+                    if (i < desiredTiePointCount / 2)
+                    {
+                        insertIndex = i + 1;
+                    }
+                    else if (i >= desiredTiePointCount / 2)
+                    {
+                        insertIndex = points.Count - 1;
+                    }
+
+                    points.Insert(insertIndex, tp);
+                    TiePoints.Add(tp);
+
+                    threadRenderer.SetPositions(threadRenderer.points.Count + 1);
+                }
             }
+
+
+
+            int half = TiePoints.Count / 2;
+            int remainder = TiePoints.Count % 2; // Extra goes to start segment
+            int startTieCount = half + remainder;
+            int endTieCount = half;
+
+            // Define segment indices dynamically
+            int startSegmentStart = 0;                  // Thread Source
+            int startSegmentEnd = 3;                    // First suture point (inclusive)
+            int endSegmentStart = 5;                    // Last suture point before needle
+            int endSegmentEnd = points.Count - 1;       // Needle Thread Point
 
             // Dependong on whether the string is tied, make the tie points have a different position
             // If they are tied, make them the midpoint between the two "ends", and the cutpoint
-            if (Tied == false)
+            for (int i = 0; i < TiePoints.Count; i++)
             {
-                TiePoint1.transform.position = (points[0].transform.position + points[2].transform.position) / 2.0f;
-                TiePoint1.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[0].transform.position - points[2].transform.position);
-                TiePoint2.transform.position = (points[points.Count - 1].transform.position + points[points.Count - 3].transform.position) / 2.0f;
-                TiePoint2.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[points.Count - 1].transform.position - points[points.Count - 3].transform.position);
+                GameObject tp = TiePoints[i];
+
+                if (i < (TiePoints.Count / 2))
+                {
+                    float t = (i + 1f) / ((TiePoints.Count / 2) + 1f);
+                    Vector3 pos = Vector3.Lerp(points[0].transform.position, points[(TiePoints.Count / 2) + 1].transform.position, t);
+                    tp.transform.position = pos;
+                }
+                else if (i >= (TiePoints.Count / 2))
+                {
+                    //float t = (points.Count - (TiePoints.Count / 2) + 1) / (points.Count);
+                    float t = (float)((i - (TiePoints.Count / 2)) + 1) / ((TiePoints.Count / 2) + 1);
+                    Vector3 pos = Vector3.Lerp(points[points.Count - (TiePoints.Count / 2) - 1].transform.position, points[points.Count - 1].transform.position, t);
+                    tp.transform.position = pos;
+                }
             }
-            else if (Tied == true)
+
+            foreach (var pair in TiedPairs)
             {
-                // wA = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
-                // wB = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
-                wC = ((DistanceBetweenMainPoints + 0.00001f) * 10.0f) + wCbias;
-                if (wC < 0.5f)
-                    wC = 0.5f;
+                if (pair.a == null || pair.b == null) continue;
 
-                Vector3 MidPoint = (
-                    threadSource.transform.position * wA +
-                    needleThreadPoint.transform.position * wB +
-                    FirstAndLastMidPoint * wC
-                ) / (wA + wB + wC);
+                Vector3 posA = pair.a.transform.position;
+                Vector3 posB = pair.b.transform.position;
 
-                TiePoint1.transform.position = MidPoint;
-                TiePoint2.transform.position = MidPoint;
+                Vector3 mid = (posA + posB) / 2f;
+
+                pair.a.transform.position = mid;
+                pair.b.transform.position = mid;
             }
+
+            //else if (Tied == true)
+            //{
+            //    wC = ((DistanceBetweenMainPoints + 0.00001f) * 10.0f) + wCbias;
+            //    if (wC < 0.5f)
+            //        wC = 0.5f;
+
+            //    Vector3 MidPoint = (
+            //        threadSource.transform.position * wA +
+            //        needleThreadPoint.transform.position * wB +
+            //        FirstAndLastMidPoint * wC
+            //    ) / (wA + wB + wC);
+            //}
         }
 
 
@@ -427,13 +571,13 @@ public class ThreadContinuer3D : MonoBehaviour
 
         // Always make the first point the position of the thread source
         points[0] = threadSource;
-        if (TiePoint1 != null)
-            points[1] = TiePoint1;
+        //if (TiePoint1 != null)
+        //    points[1] = TiePoint1;
 
         // Alays make the last point the position of the needleThreadPoint
         points[points.Count - 1] = needleThreadPoint;
-        if (TiePoint2 != null)
-            points[points.Count - 2] = TiePoint2;
+        //if (TiePoint2 != null)
+        //    points[points.Count - 2] = TiePoint2;
         
 
         // Reset "Entered" booleans for next iteration
@@ -445,6 +589,15 @@ public class ThreadContinuer3D : MonoBehaviour
         needleThreadPoint.GetComponent<messenger>().ExitedMesh = false;
         needleThreadPointEntered = false;
 
+    }
+
+
+
+
+    // Checks if a point is already tied or not
+    bool IsAlreadyTied(GameObject tp)
+    {
+        return TiedPairs.Exists(p => p.a == tp || p.b == tp);
     }
 
 

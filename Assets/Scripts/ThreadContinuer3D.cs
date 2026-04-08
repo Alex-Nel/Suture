@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEditor.Rendering;
@@ -7,37 +8,28 @@ using UnityEngine;
 
 public class ThreadContinuer3D : MonoBehaviour
 {
+    [Header("Primary objects to set")]
     // Objects related to the needle
     public GameObject needle;
     public GameObject needlePoint;
     public GameObject needleThreadPoint;
+    public GameObject needleMiddle; // The middle of the needle (while model is unfixed)
+    public GameObject threadSource; // Objects related to the thread
 
-    // The middle of the needle (while model is unfixed)
-    public GameObject needleMiddle;
-
-    // Objects related to the thread
-    // public GameObject thread; // might be needed in the future
-    public GameObject threadSource;
-
+    [Header("Objects for the thread (line renderer 3D)")]
     // Line Renderer
     public LineRenderer3D threadRenderer;
     public Material threadMaterial;
     public float threadWidth; // Recommended value: 0.0005f
-
-    // Points for the line renderer
-    public List<GameObject> points;
-
-    // totalPoints count to know when a suture pair is made.
-    private int totalPoints = 0;
-
-    // Holds a potential point to add
-    private Vector3 potentialPoint;
+    public List<GameObject> points; // Points for the line renderer
+    public int totalPoints = 0; // totalPoints count to know when a suture pair is made.
+    private Vector3 potentialPoint; // Holds a potential point to add
 
     // Objects related to the suture pairs
     [Header("Objects related to the suture pairs")]
     private (GameObject, GameObject, Vector3) pair;
     public List<(GameObject, GameObject, Vector3)> suturePairs;
-    private GameObject pairObj1;
+    private GameObject pairObj1; // Temp variable for making a suturePair
 
 
     // Objects and values related to the mesh deformation
@@ -54,8 +46,8 @@ public class ThreadContinuer3D : MonoBehaviour
     public GameObject TiePoint1;
     public GameObject TiePoint2;
     public List<GameObject> TiePoints = new List<GameObject>();
-    public int desiredTiePointCount = 4;
-    List<(GameObject a, GameObject b)> TiedPairs = new();
+    public int desiredTiePointCount = 4; // Changes the number of TiePoints in the string
+    public List<(GameObject a, GameObject b)> TiedPairs = new();
     public bool Tied = false;
     
     public float wA, wB, wC; // These weights mostly stay at 1, might remove
@@ -63,7 +55,7 @@ public class ThreadContinuer3D : MonoBehaviour
     public float DistanceBetweenMainPoints;
     public float DistanceFromMidPoint;
 
-    [Header("Other Values")]
+    [Header("Values for neelde locking during suturing")]
     public bool needleLocked;
     public bool needlePointInMesh;
     public Vector3 lockedPos;
@@ -201,7 +193,7 @@ public class ThreadContinuer3D : MonoBehaviour
             // If there are more than 3 points, then insert at point.Count - 2 to account fo the tie objects.
             // Otherwise insert at the point.Count - 1.
             if (points.Count >= 6)
-                points.Insert(points.Count - 2, obj);
+                points.Insert(points.Count - (desiredTiePointCount / 2) - 1, obj);
             else
                 points.Insert(points.Count - 1, obj);
 
@@ -220,7 +212,8 @@ public class ThreadContinuer3D : MonoBehaviour
         //
         if (Tied)
         {
-            FirstAndLastMidPoint = (points[2].transform.position + points[points.Count-3].transform.position) / 2.0f;
+            //FirstAndLastMidPoint = (points[2].transform.position + points[points.Count-3].transform.position) / 2.0f;
+            FirstAndLastMidPoint = (points[(desiredTiePointCount/2)+1].transform.position + points[points.Count - (desiredTiePointCount/2) - 2].transform.position) / 2.0f;
 
             float needleDistance = Vector3.Distance(needleThreadPoint.transform.position, FirstAndLastMidPoint);
             float ThreadStartDistance = Vector3.Distance(threadSource.transform.position, FirstAndLastMidPoint);
@@ -258,21 +251,6 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
         // Checking if the user is trying to tie the string
-        // Check BEFORE checking cutpoint since TiePoint can also be CutPoint
-        //if (TiePoint1 != null && TiePoint1.GetComponent<messenger>().TargetTag != "Scissors")
-        //{
-        //    // Debug.Log("Checking for a tie");
-        //    if (TiePoint1.GetComponent<messenger>().EnteredMesh == true)
-        //    {
-        //        TiePoint1.GetComponent<messenger>().EnteredMesh = false;
-        //        Debug.Log("Tied Points touched, tie started");
-        //        Tied = true;
-        //        TiePoint1.GetComponent<messenger>().TargetTag = "Scissors";
-        //    }
-        //    if (TiePoint1.GetComponent<messenger>().ExitedMesh == true)
-        //        TiePoint1.GetComponent<messenger>().ExitedMesh = false;
-        //}
-
         foreach (var tp in TiePoints)
         {
             var msg = tp.GetComponent<messenger>();
@@ -287,29 +265,28 @@ public class ThreadContinuer3D : MonoBehaviour
                 if (other != null && other.CompareTag("TiePoint"))
                 {
                     if (IsAlreadyTied(tp) || IsAlreadyTied(other)) continue;
+                    if (PairExists(tp, other)) continue;
+
+                    //if (Vector3.Distance(tp.transform.position, other.transform.position) > 0.01f) continue;
+                    bool tpIsStart = IsStartSegment(tp);
+                    bool otherIsStart = IsStartSegment(other);
+
+                    if (tpIsStart == otherIsStart) continue;
 
                     TiedPairs.Add((tp, other));
 
                     Debug.Log($"Tied {tp.name} with {other.name}");
 
                     msg.TargetTag = "Scissors";
+                    CutPoint = tp;
                     other.GetComponent<messenger>().TargetTag = "Scissors";
+
+                    Tied = true;
                 }
             }
 
-            if (msg.EnteredMesh == true)
+            if (msg.ExitedMesh == true)
                 msg.ExitedMesh = false;
-        }
-
-
-
-
-
-
-        // If points list has more than 8 points, more than 2 pairs are being made, so change cutpoint
-        if (points.Count > 8 && CutPoint != TiePoint1)
-        {
-            CutPoint = TiePoint1;
         }
 
 
@@ -340,75 +317,6 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
-        ////
-        //// If there are more than 3 points, make the tie points if they haven't been made
-        //// Set them as the midpoints of the first 2, and last 2 points
-        ////
-        //if (points.Count >= 3)
-        //{
-        //    if (TiePoint1 == null)
-        //    {
-        //        TiePoint1 = new();
-        //        TiePoint1.name = "TiePoint1";
-        //        TiePoint1.tag = "TiePoint";
-        //        TiePoint1.AddComponent<CapsuleCollider>();
-        //        TiePoint1.GetComponent<CapsuleCollider>().isTrigger = true;
-        //        TiePoint1.GetComponent<CapsuleCollider>().radius = 0.0005f;
-        //        TiePoint1.GetComponent<CapsuleCollider>().height = 0.005f;
-        //        TiePoint1.AddComponent<messenger>();
-        //        TiePoint1.GetComponent<messenger>().TargetTag = "TiePoint";
-        //        TiePoint1.AddComponent<Rigidbody>();
-        //        TiePoint1.GetComponent<Rigidbody>().isKinematic = true;
-
-        //        points.Insert(1, TiePoint1);
-        //        threadRenderer.SetPositions(threadRenderer.points.Count + 1);
-        //        Debug.Log("Tie point 1 Created");
-        //    }
-        //    if (TiePoint2 == null)
-        //    {
-        //        TiePoint2 = new();
-        //        TiePoint2.name = "TiePoint2";
-        //        TiePoint2.tag = "TiePoint";
-        //        TiePoint2.AddComponent<CapsuleCollider>();
-        //        TiePoint2.GetComponent<CapsuleCollider>().isTrigger = true;
-        //        TiePoint2.GetComponent<CapsuleCollider>().radius = 0.0005f;
-        //        TiePoint2.GetComponent<CapsuleCollider>().height = 0.005f;
-        //        TiePoint2.AddComponent<messenger>();
-        //        TiePoint2.GetComponent<messenger>().TargetTag = "TiePoint";
-
-        //        points.Insert(points.Count - 1, TiePoint2);
-        //        threadRenderer.SetPositions(threadRenderer.points.Count + 1);
-        //        Debug.Log("Tie point 2 Created");
-        //    }
-
-        //    // Dependong on whether the string is tied, make the tie points have a different position
-        //    // If they are tied, make them the midpoint between the two "ends", and the cutpoint
-        //    if (Tied == false)
-        //    {
-        //        TiePoint1.transform.position = (points[0].transform.position + points[2].transform.position) / 2.0f;
-        //        TiePoint1.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[0].transform.position - points[2].transform.position);
-        //        TiePoint2.transform.position = (points[points.Count - 1].transform.position + points[points.Count - 3].transform.position) / 2.0f;
-        //        TiePoint2.transform.rotation = Quaternion.FromToRotation(Vector3.up, points[points.Count - 1].transform.position - points[points.Count - 3].transform.position);
-        //    }
-        //    else if (Tied == true)
-        //    {
-        //        // wA = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
-        //        // wB = 1.0f / (DistanceBetweenMainPoints + 0.00001f) / 10.0f;
-        //        wC = ((DistanceBetweenMainPoints + 0.00001f) * 10.0f) + wCbias;
-        //        if (wC < 0.5f)
-        //            wC = 0.5f;
-
-        //        Vector3 MidPoint = (
-        //            threadSource.transform.position * wA +
-        //            needleThreadPoint.transform.position * wB +
-        //            FirstAndLastMidPoint * wC
-        //        ) / (wA + wB + wC);
-
-        //        TiePoint1.transform.position = MidPoint;
-        //        TiePoint2.transform.position = MidPoint;
-        //    }
-        //}
-
         //
         // If there are more than 3 points, make the tie points if they haven't been made
         // Set them as the midpoints of the first 2, and last 2 points
@@ -417,23 +325,18 @@ public class ThreadContinuer3D : MonoBehaviour
         {
             if (TiePoints.Count == 0)
             {
-                //List<int> insertIndices = new List<int>();
-
-                //int half = desiredTiePointCount / 2;
-
-                //for (int i = desiredTiePointCount - 1; i >= 0; i--)
                 for (int i = 0; i < desiredTiePointCount; i++)
                 {
-                    int logicalIndex = i;
-
                     GameObject tp = new GameObject();
-                    tp.name = "TiePoint" + logicalIndex;
+                    tp.name = "TiePoint" + i;
                     tp.tag = "TiePoint";
 
                     var col = tp.AddComponent<CapsuleCollider>();
                     col.isTrigger = true;
                     col.radius = 0.0005f;
                     col.height = 0.005f;
+                    col.enabled = false;
+                    StartCoroutine(EnableCollider(col));
 
                     var msg = tp.AddComponent<messenger>();
                     msg.TargetTag = "TiePoint";
@@ -444,13 +347,9 @@ public class ThreadContinuer3D : MonoBehaviour
                     int insertIndex = 0;
 
                     if (i < desiredTiePointCount / 2)
-                    {
                         insertIndex = i + 1;
-                    }
                     else if (i >= desiredTiePointCount / 2)
-                    {
                         insertIndex = points.Count - 1;
-                    }
 
                     points.Insert(insertIndex, tp);
                     TiePoints.Add(tp);
@@ -461,63 +360,62 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
-            int half = TiePoints.Count / 2;
-            int remainder = TiePoints.Count % 2; // Extra goes to start segment
-            int startTieCount = half + remainder;
-            int endTieCount = half;
-
-            // Define segment indices dynamically
-            int startSegmentStart = 0;                  // Thread Source
-            int startSegmentEnd = 3;                    // First suture point (inclusive)
-            int endSegmentStart = 5;                    // Last suture point before needle
-            int endSegmentEnd = points.Count - 1;       // Needle Thread Point
-
-            // Dependong on whether the string is tied, make the tie points have a different position
-            // If they are tied, make them the midpoint between the two "ends", and the cutpoint
-            for (int i = 0; i < TiePoints.Count; i++)
-            {
-                GameObject tp = TiePoints[i];
-
-                if (i < (TiePoints.Count / 2))
-                {
-                    float t = (i + 1f) / ((TiePoints.Count / 2) + 1f);
-                    Vector3 pos = Vector3.Lerp(points[0].transform.position, points[(TiePoints.Count / 2) + 1].transform.position, t);
-                    tp.transform.position = pos;
-                }
-                else if (i >= (TiePoints.Count / 2))
-                {
-                    //float t = (points.Count - (TiePoints.Count / 2) + 1) / (points.Count);
-                    float t = (float)((i - (TiePoints.Count / 2)) + 1) / ((TiePoints.Count / 2) + 1);
-                    Vector3 pos = Vector3.Lerp(points[points.Count - (TiePoints.Count / 2) - 1].transform.position, points[points.Count - 1].transform.position, t);
-                    tp.transform.position = pos;
-                }
-            }
-
+            // If any two points are tied, make them locked in their midpoint
             foreach (var pair in TiedPairs)
             {
                 if (pair.a == null || pair.b == null) continue;
 
-                Vector3 posA = pair.a.transform.position;
-                Vector3 posB = pair.b.transform.position;
+                //Debug.Log("Applying ties: " + TiedPairs.Count);
 
-                Vector3 mid = (posA + posB) / 2f;
+                wC = ((DistanceBetweenMainPoints + 0.00001f) * 10.0f) + wCbias;
+                if (wC < 0.5f)
+                    wC = 0.5f;
 
-                pair.a.transform.position = mid;
-                pair.b.transform.position = mid;
+                Vector3 MidPoint = (
+                    threadSource.transform.position * wA +
+                    needleThreadPoint.transform.position * wB +
+                    FirstAndLastMidPoint * wC
+                ) / (wA + wB + wC);
+
+                pair.a.transform.position = MidPoint;
+                pair.b.transform.position = MidPoint;
             }
 
-            //else if (Tied == true)
-            //{
-            //    wC = ((DistanceBetweenMainPoints + 0.00001f) * 10.0f) + wCbias;
-            //    if (wC < 0.5f)
-            //        wC = 0.5f;
 
-            //    Vector3 MidPoint = (
-            //        threadSource.transform.position * wA +
-            //        needleThreadPoint.transform.position * wB +
-            //        FirstAndLastMidPoint * wC
-            //    ) / (wA + wB + wC);
-            //}
+
+            for (int i = 0; i < points.Count; i++)
+            {
+                GameObject current = points[i];
+
+                // Only process tie points
+                if (!current.CompareTag("TiePoint")) continue;
+
+                // Skip tied ones (they're already positioned)
+                if (IsAlreadyTied(current)) continue;
+
+                // Make sure we have neighbors
+                if (i == 0 || i == points.Count - 1) continue;
+
+                GameObject prev = points[i - 1];
+                GameObject next = points[i + 1];
+
+                if (prev == null || next == null) continue;
+
+                Vector3 prevPos = prev.transform.position;
+                Vector3 nextPos = next.transform.position;
+
+                // midpoint line
+                Vector3 mid = (prevPos + nextPos) * 0.5f;
+
+                current.transform.position = mid;
+
+                // Rotation along the local segment
+                Vector3 dir = (nextPos - prevPos).normalized;
+                if (dir != Vector3.zero)
+                {
+                    current.transform.rotation = Quaternion.FromToRotation(Vector3.up, dir);
+                }
+            }
         }
 
 
@@ -603,6 +501,35 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
 
+    bool PairExists(GameObject a, GameObject b)
+    {
+        return TiedPairs.Exists(p =>
+            (p.a == a && p.b == b) ||
+            (p.a == b && p.b == a));
+    }
+
+
+
+
+    bool IsStartSegment(GameObject tp)
+    {
+        int index = points.IndexOf(tp);
+        return index < (points.Count / 2) + 1;
+        //return index < (TiePoints.Count / 2) + 1;
+    }
+
+
+
+
+    IEnumerator EnableCollider(Collider col)
+    {
+        yield return new WaitForSeconds(3f);
+        col.enabled = true;
+    }
+
+
+
+
 
 
 
@@ -621,11 +548,11 @@ public class ThreadContinuer3D : MonoBehaviour
 
 
         // Copy current line renderer points to the new object (without the tiepoints and start/end points)
-        int positionCount = threadRenderer.points.Count - 4;
+        int positionCount = threadRenderer.points.Count - desiredTiePointCount - 2;
         Vector3[] sourcePointsList = new Vector3[positionCount];
         for (int i = 0; i < positionCount; i++)
         {
-            sourcePointsList[i] = threadRenderer.points[i+2].position;
+            sourcePointsList[i] = threadRenderer.points[i + (desiredTiePointCount / 2) + 1].position;
         }
         obj.GetComponent<LineRenderer3D>().SetPoints(sourcePointsList, threadWidth);
 
@@ -634,14 +561,19 @@ public class ThreadContinuer3D : MonoBehaviour
         points.Clear();
         Tied = false;
 
-        // Destory and reset all the tie points and cut point
+        // Destroy and reset all the tie points and cut point
         Destroy(CutPoint);
         CutPoint = null;
 
-        Destroy(TiePoint1);
-        TiePoint1 = null;
-        Destroy(TiePoint2);
-        TiePoint2 = null;
+        //Destroy(TiePoint1);
+        //TiePoint1 = null;
+        //Destroy(TiePoint2);
+        //TiePoint2 = null;
+        foreach (GameObject TieObj in TiePoints)
+        {
+            Destroy(TieObj);
+        }
+        TiePoints.Clear();
 
         // Reset the line renderer
         threadRenderer.SetPositions(2);

@@ -16,7 +16,7 @@ public class messenger : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        col = GetComponent<Collider>();
+        //col = GetComponent<Collider>();
         if (TargetTag == null)
             Debug.Log("No Tag set");
         EnteredMesh = false;
@@ -32,15 +32,22 @@ public class messenger : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (other.tag == TargetTag)
+        {
             EnteredMesh = true;
-        Debug.Log(gameObject.name + " touched by: " + other.tag);
+            col = other;
+        }
+        //Debug.Log(gameObject.name + " touched by: " + other.tag);
+        Debug.Log(gameObject.name + " touched by: " + other.gameObject.name);
         // ExitedMesh = false;
     }
 
     void OnTriggerExit(Collider other)
     {
         if (other.tag == TargetTag)
+        {
             ExitedMesh = true;
+            col = null;
+        }
         Debug.Log(gameObject.name + " touched by: " + other.tag);
         // EnteredMesh = false;
     }
